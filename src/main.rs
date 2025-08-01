@@ -1,7 +1,8 @@
 mod workspace;
 use clap::{Parser, Subcommand};
 use comfy_table::{
-    Attribute, Cell, Color, ContentArrangement, Table, modifiers::UTF8_ROUND_CORNERS, presets::UTF8_BORDERS_ONLY,
+    modifiers::UTF8_ROUND_CORNERS, presets::UTF8_BORDERS_ONLY, Attribute, Cell, Color,
+    ContentArrangement, Table,
 };
 use inquire::Select;
 use serde::{Deserialize, Serialize};
@@ -113,32 +114,32 @@ fn get_themes() -> Vec<Theme> {
         Theme {
             name: "monokai".to_string(),
             description: "Monokai - Classic vibrant dark theme".to_string(),
-            border: (174, 129, 255),      // Purple
-            header: (255, 97, 136),       // Pink
-            file_name: (120, 220, 232),   // Cyan
-            file_type: (120, 220, 232),   // Cyan
-            dir_name: (174, 129, 255),    // Purple
-            dir_type: (174, 129, 255),    // Purple
-            file_size: (158, 206, 106),   // Green
-            dir_size: (117, 113, 94),     // Comment
-            modified: (255, 216, 102),    // Yellow
-            permissions: (255, 97, 136),  // Pink
-            row_number: (248, 248, 242),  // White
+            border: (174, 129, 255),     // Purple
+            header: (255, 97, 136),      // Pink
+            file_name: (120, 220, 232),  // Cyan
+            file_type: (120, 220, 232),  // Cyan
+            dir_name: (174, 129, 255),   // Purple
+            dir_type: (174, 129, 255),   // Purple
+            file_size: (158, 206, 106),  // Green
+            dir_size: (117, 113, 94),    // Comment
+            modified: (255, 216, 102),   // Yellow
+            permissions: (255, 97, 136), // Pink
+            row_number: (248, 248, 242), // White
         },
         Theme {
             name: "gruvbox".to_string(),
             description: "Gruvbox - Retro groove warm color scheme".to_string(),
-            border: (214, 153, 108),      // Orange
-            header: (251, 73, 52),        // Red
-            file_name: (131, 165, 152),   // Aqua
-            file_type: (131, 165, 152),   // Aqua
-            dir_name: (69, 133, 136),     // Blue
-            dir_type: (69, 133, 136),     // Blue
-            file_size: (152, 151, 26),    // Green
-            dir_size: (146, 131, 116),    // Gray
-            modified: (215, 153, 33),     // Yellow
-            permissions: (177, 98, 134),  // Purple
-            row_number: (235, 219, 178),  // Foreground
+            border: (214, 153, 108),     // Orange
+            header: (251, 73, 52),       // Red
+            file_name: (131, 165, 152),  // Aqua
+            file_type: (131, 165, 152),  // Aqua
+            dir_name: (69, 133, 136),    // Blue
+            dir_type: (69, 133, 136),    // Blue
+            file_size: (152, 151, 26),   // Green
+            dir_size: (146, 131, 116),   // Gray
+            modified: (215, 153, 33),    // Yellow
+            permissions: (177, 98, 134), // Purple
+            row_number: (235, 219, 178), // Foreground
         },
         Theme {
             name: "solarized".to_string(),
@@ -182,7 +183,7 @@ fn get_config_path() -> PathBuf {
 
 fn load_config() -> Config {
     let config_path = get_config_path();
-    
+
     if config_path.exists() {
         match fs::read_to_string(&config_path) {
             Ok(content) => match toml::from_str(&content) {
@@ -198,11 +199,11 @@ fn load_config() -> Config {
 
 fn save_config(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
     let config_path = get_config_path();
-    
+
     if let Some(parent) = config_path.parent() {
         fs::create_dir_all(parent)?;
     }
-    
+
     let content = toml::to_string_pretty(config)?;
     fs::write(config_path, content)?;
     Ok(())
@@ -214,7 +215,7 @@ fn get_theme_by_name(name: &str) -> Option<Theme> {
 
 fn main() {
     let cli = Cli::parse();
-    
+
     match cli.command {
         Some(Commands::Workspace) => {
             if let Err(e) = workspace::print_workspace_snapshot() {
@@ -227,8 +228,8 @@ fn main() {
         None => {
             // Default behavior: show directory listing with saved theme
             let config = load_config();
-            let theme = get_theme_by_name(&config.default_theme)
-                .unwrap_or_else(|| get_themes()[0].clone()); // Fallback to Catppuccin
+            let theme =
+                get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone()); // Fallback to Catppuccin
             show_directory_table(&theme);
         }
     }
@@ -236,16 +237,17 @@ fn main() {
 
 fn handle_theme_command(theme_name: Option<String>, set_as_default: bool) {
     let themes = get_themes();
-    
+
     let selected_theme = if let Some(name) = theme_name {
         // Direct theme selection
         themes.iter().find(|t| t.name == name).cloned()
     } else {
         // Interactive theme selection
-        let theme_options: Vec<String> = themes.iter()
+        let theme_options: Vec<String> = themes
+            .iter()
             .map(|t| format!("{} - {}", t.name, t.description))
             .collect();
-            
+
         match Select::new("Select a theme:", theme_options).prompt() {
             Ok(selection) => {
                 let theme_name = selection.split(" - ").next().unwrap();
@@ -257,7 +259,7 @@ fn handle_theme_command(theme_name: Option<String>, set_as_default: bool) {
             }
         }
     };
-    
+
     match selected_theme {
         Some(theme) => {
             if set_as_default {
@@ -265,7 +267,7 @@ fn handle_theme_command(theme_name: Option<String>, set_as_default: bool) {
                 let config = Config {
                     default_theme: theme.name.clone(),
                 };
-                
+
                 match save_config(&config) {
                     Ok(_) => {
                         println!("✓ Set '{}' as default theme", theme.name);
@@ -273,7 +275,10 @@ fn handle_theme_command(theme_name: Option<String>, set_as_default: bool) {
                     }
                     Err(e) => {
                         eprintln!("Error saving config: {}", e);
-                        println!("Using theme: {} - {} (not saved)", theme.name, theme.description);
+                        println!(
+                            "Using theme: {} - {} (not saved)",
+                            theme.name, theme.description
+                        );
                     }
                 }
             } else {
@@ -305,12 +310,48 @@ fn show_directory_table(theme: &Theme) {
         .apply_modifier(UTF8_ROUND_CORNERS)
         .set_content_arrangement(ContentArrangement::Dynamic)
         .set_header(vec![
-            Cell::new("#").add_attribute(Attribute::Bold).fg(Color::Rgb { r: theme.header.0, g: theme.header.1, b: theme.header.2 }),
-            Cell::new("Name").add_attribute(Attribute::Bold).fg(Color::Rgb { r: theme.header.0, g: theme.header.1, b: theme.header.2 }),
-            Cell::new("Type").add_attribute(Attribute::Bold).fg(Color::Rgb { r: theme.header.0, g: theme.header.1, b: theme.header.2 }),
-            Cell::new("Size").add_attribute(Attribute::Bold).fg(Color::Rgb { r: theme.header.0, g: theme.header.1, b: theme.header.2 }),
-            Cell::new("Modified").add_attribute(Attribute::Bold).fg(Color::Rgb { r: theme.header.0, g: theme.header.1, b: theme.header.2 }),
-            Cell::new("Permissions").add_attribute(Attribute::Bold).fg(Color::Rgb { r: theme.header.0, g: theme.header.1, b: theme.header.2 }),
+            Cell::new("#")
+                .add_attribute(Attribute::Bold)
+                .fg(Color::Rgb {
+                    r: theme.header.0,
+                    g: theme.header.1,
+                    b: theme.header.2,
+                }),
+            Cell::new("Name")
+                .add_attribute(Attribute::Bold)
+                .fg(Color::Rgb {
+                    r: theme.header.0,
+                    g: theme.header.1,
+                    b: theme.header.2,
+                }),
+            Cell::new("Type")
+                .add_attribute(Attribute::Bold)
+                .fg(Color::Rgb {
+                    r: theme.header.0,
+                    g: theme.header.1,
+                    b: theme.header.2,
+                }),
+            Cell::new("Size")
+                .add_attribute(Attribute::Bold)
+                .fg(Color::Rgb {
+                    r: theme.header.0,
+                    g: theme.header.1,
+                    b: theme.header.2,
+                }),
+            Cell::new("Modified")
+                .add_attribute(Attribute::Bold)
+                .fg(Color::Rgb {
+                    r: theme.header.0,
+                    g: theme.header.1,
+                    b: theme.header.2,
+                }),
+            Cell::new("Permissions")
+                .add_attribute(Attribute::Bold)
+                .fg(Color::Rgb {
+                    r: theme.header.0,
+                    g: theme.header.1,
+                    b: theme.header.2,
+                }),
         ]);
 
     // Step 4: Add each file/folder to the table
@@ -322,45 +363,86 @@ fn show_directory_table(theme: &Theme) {
             .unwrap_or_default()
             .to_string_lossy()
             .to_string();
-        
+
         let metadata = match path.metadata() {
             Ok(meta) => meta,
             Err(_) => continue,
         };
-        
+
         let file_type = if path.is_dir() { "Directory" } else { "File" };
-        
+
         // Create colored cells based on file type using theme colors
         let name_cell = if path.is_dir() {
-            Cell::new(&name).fg(Color::Rgb { r: theme.dir_name.0, g: theme.dir_name.1, b: theme.dir_name.2 })
+            Cell::new(&name).fg(Color::Rgb {
+                r: theme.dir_name.0,
+                g: theme.dir_name.1,
+                b: theme.dir_name.2,
+            })
         } else {
-            Cell::new(&name).fg(Color::Rgb { r: theme.file_name.0, g: theme.file_name.1, b: theme.file_name.2 })
+            Cell::new(&name).fg(Color::Rgb {
+                r: theme.file_name.0,
+                g: theme.file_name.1,
+                b: theme.file_name.2,
+            })
         };
-        
+
         let type_cell = if path.is_dir() {
-            Cell::new(file_type).fg(Color::Rgb { r: theme.dir_type.0, g: theme.dir_type.1, b: theme.dir_type.2 })
+            Cell::new(file_type).fg(Color::Rgb {
+                r: theme.dir_type.0,
+                g: theme.dir_type.1,
+                b: theme.dir_type.2,
+            })
         } else {
-            Cell::new(file_type).fg(Color::Rgb { r: theme.file_type.0, g: theme.file_type.1, b: theme.file_type.2 })
+            Cell::new(file_type).fg(Color::Rgb {
+                r: theme.file_type.0,
+                g: theme.file_type.1,
+                b: theme.file_type.2,
+            })
         };
-        
+
         // Format size with theme colors
         let size_cell = if path.is_dir() {
-            Cell::new(&"-".to_string()).fg(Color::Rgb { r: theme.dir_size.0, g: theme.dir_size.1, b: theme.dir_size.2 })
+            Cell::new(&"-".to_string()).fg(Color::Rgb {
+                r: theme.dir_size.0,
+                g: theme.dir_size.1,
+                b: theme.dir_size.2,
+            })
         } else {
-            Cell::new(&format_size(metadata.len())).fg(Color::Rgb { r: theme.file_size.0, g: theme.file_size.1, b: theme.file_size.2 })
+            Cell::new(&format_size(metadata.len())).fg(Color::Rgb {
+                r: theme.file_size.0,
+                g: theme.file_size.1,
+                b: theme.file_size.2,
+            })
         };
-        
+
         // Format modified time with theme colors
         let modified_cell = match metadata.modified() {
-            Ok(time) => Cell::new(&format_time(time)).fg(Color::Rgb { r: theme.modified.0, g: theme.modified.1, b: theme.modified.2 }),
-            Err(_) => Cell::new("Unknown").fg(Color::Rgb { r: theme.modified.0, g: theme.modified.1, b: theme.modified.2 }),
+            Ok(time) => Cell::new(&format_time(time)).fg(Color::Rgb {
+                r: theme.modified.0,
+                g: theme.modified.1,
+                b: theme.modified.2,
+            }),
+            Err(_) => Cell::new("Unknown").fg(Color::Rgb {
+                r: theme.modified.0,
+                g: theme.modified.1,
+                b: theme.modified.2,
+            }),
         };
-        
+
         // Format permissions with theme color
-        let permissions_cell = Cell::new(&format_permissions(metadata.permissions().mode())).fg(Color::Rgb { r: theme.permissions.0, g: theme.permissions.1, b: theme.permissions.2 });
-        
+        let permissions_cell =
+            Cell::new(&format_permissions(metadata.permissions().mode())).fg(Color::Rgb {
+                r: theme.permissions.0,
+                g: theme.permissions.1,
+                b: theme.permissions.2,
+            });
+
         table.add_row(vec![
-            Cell::new(&row_number.to_string()).fg(Color::Rgb { r: theme.row_number.0, g: theme.row_number.1, b: theme.row_number.2 }),
+            Cell::new(&row_number.to_string()).fg(Color::Rgb {
+                r: theme.row_number.0,
+                g: theme.row_number.1,
+                b: theme.row_number.2,
+            }),
             name_cell,
             type_cell,
             size_cell,
@@ -380,7 +462,7 @@ fn format_size(size: u64) -> String {
     const KB: u64 = 1024;
     const MB: u64 = KB * 1024;
     const GB: u64 = MB * 1024;
-    
+
     if size >= GB {
         format!("{:.1} GB", size as f64 / GB as f64)
     } else if size >= MB {
@@ -407,17 +489,20 @@ fn format_time(time: SystemTime) -> String {
 }
 
 fn format_permissions(mode: u32) -> String {
-    let user = format!("{}{}{}",
+    let user = format!(
+        "{}{}{}",
         if mode & 0o400 != 0 { "r" } else { "-" },
         if mode & 0o200 != 0 { "w" } else { "-" },
         if mode & 0o100 != 0 { "x" } else { "-" }
     );
-    let group = format!("{}{}{}",
+    let group = format!(
+        "{}{}{}",
         if mode & 0o040 != 0 { "r" } else { "-" },
         if mode & 0o020 != 0 { "w" } else { "-" },
         if mode & 0o010 != 0 { "x" } else { "-" }
     );
-    let other = format!("{}{}{}",
+    let other = format!(
+        "{}{}{}",
         if mode & 0o004 != 0 { "r" } else { "-" },
         if mode & 0o002 != 0 { "w" } else { "-" },
         if mode & 0o001 != 0 { "x" } else { "-" }
@@ -426,16 +511,20 @@ fn format_permissions(mode: u32) -> String {
 }
 
 fn colorize_borders(table_str: &str, theme: &Theme) -> String {
-    let border_color = format!("\x1b[38;2;{};{};{}m", theme.border.0, theme.border.1, theme.border.2);
+    let border_color = format!(
+        "\x1b[38;2;{};{};{}m",
+        theme.border.0, theme.border.1, theme.border.2
+    );
     let reset_color = "\x1b[0m";
-    
+
     table_str
         .lines()
         .map(|line| {
             let mut colored_line = String::new();
             for ch in line.chars() {
                 match ch {
-                    '╭' | '╮' | '╰' | '╯' | '│' | '─' | '┼' | '├' | '┤' | '┬' | '┴' | '═' | '╞' | '╡' => {
+                    '╭' | '╮' | '╰' | '╯' | '│' | '─' | '┼' | '├' | '┤' | '┬' | '┴' | '═' | '╞'
+                    | '╡' => {
                         colored_line.push_str(&format!("{}{}{}", border_color, ch, reset_color));
                     }
                     _ => {
