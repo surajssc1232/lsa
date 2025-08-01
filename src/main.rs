@@ -1,8 +1,8 @@
 mod workspace;
 use clap::{Parser, Subcommand};
 use comfy_table::{
-    modifiers::UTF8_ROUND_CORNERS, presets::UTF8_BORDERS_ONLY, Attribute, Cell, Color,
-    ContentArrangement, Table,
+    Attribute, Cell, Color, ContentArrangement, Table, modifiers::UTF8_ROUND_CORNERS,
+    presets::UTF8_BORDERS_ONLY,
 };
 use inquire::Select;
 use serde::{Deserialize, Serialize};
@@ -11,6 +11,7 @@ use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::time::SystemTime;
+use chrono::{Duration, Local};
 
 #[derive(Parser)]
 #[command(name = "lsr")]
@@ -475,13 +476,23 @@ fn format_size(size: u64) -> String {
 }
 
 fn format_time(time: SystemTime) -> String {
-    match time.duration_since(SystemTime::UNIX_EPOCH) {
+    let now = SystemTime::now();
+    match now.duration_since(time) {
         Ok(duration) => {
-            let timestamp = duration.as_secs();
-            let datetime = chrono::DateTime::from_timestamp(timestamp as i64, 0);
-            match datetime {
-                Some(dt) => dt.format("%Y-%m-%d %H:%M").to_string(),
-                None => "Unknown".to_string(),
+            if duration < Duration::minutes(1).to_std().unwrap() {
+                "just now".to_string()
+            } else if duration < Duration::hours(1).to_std().unwrap() {
+                format!("{} minutes ago", duration.as_secs() / 60)
+            } else if duration < Duration::days(1).to_std().unwrap() {
+                format!("{} hours ago", duration.as_secs() / 3600)
+            } else if duration < Duration::weeks(1).to_std().unwrap() {
+                format!("{} days ago", duration.as_secs() / (3600 * 24))
+            } else if duration < Duration::weeks(4).to_std().unwrap() {
+                format!("{} weeks ago", duration.as_secs() / (3600 * 24 * 7))
+            } else if duration < Duration::days(365).to_std().unwrap() {
+                format!("{} months ago", duration.as_secs() / (3600 * 24 * 30))
+            } else {
+                format!("{} years ago", duration.as_secs() / (3600 * 24 * 365))
             }
         }
         Err(_) => "Unknown".to_string(),
