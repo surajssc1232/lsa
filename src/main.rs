@@ -11,7 +11,7 @@ use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::time::SystemTime;
-use chrono::{Duration, Local};
+use chrono::Duration;
 
 #[derive(Parser)]
 #[command(name = "lsr")]
@@ -220,7 +220,7 @@ fn main() {
     match cli.command {
         Some(Commands::Workspace) => {
             if let Err(e) = workspace::print_workspace_snapshot() {
-                eprintln!("Error printing workspace: {}", e);
+                eprintln!("Error printing workspace: {e}");
             }
         }
         Some(Commands::Theme { name, set }) => {
@@ -275,7 +275,7 @@ fn handle_theme_command(theme_name: Option<String>, set_as_default: bool) {
                         println!("Using theme: {} - {}", theme.name, theme.description);
                     }
                     Err(e) => {
-                        eprintln!("Error saving config: {}", e);
+                        eprintln!("Error saving config: {e}");
                         println!(
                             "Using theme: {} - {} (not saved)",
                             theme.name, theme.description
@@ -403,13 +403,13 @@ fn show_directory_table(theme: &Theme) {
 
         // Format size with theme colors
         let size_cell = if path.is_dir() {
-            Cell::new(&"-".to_string()).fg(Color::Rgb {
+            Cell::new("-".to_string()).fg(Color::Rgb {
                 r: theme.dir_size.0,
                 g: theme.dir_size.1,
                 b: theme.dir_size.2,
             })
         } else {
-            Cell::new(&format_size(metadata.len())).fg(Color::Rgb {
+            Cell::new(format_size(metadata.len())).fg(Color::Rgb {
                 r: theme.file_size.0,
                 g: theme.file_size.1,
                 b: theme.file_size.2,
@@ -418,7 +418,7 @@ fn show_directory_table(theme: &Theme) {
 
         // Format modified time with theme colors
         let modified_cell = match metadata.modified() {
-            Ok(time) => Cell::new(&format_time(time)).fg(Color::Rgb {
+            Ok(time) => Cell::new(format_time(time)).fg(Color::Rgb {
                 r: theme.modified.0,
                 g: theme.modified.1,
                 b: theme.modified.2,
@@ -432,14 +432,14 @@ fn show_directory_table(theme: &Theme) {
 
         // Format permissions with theme color
         let permissions_cell =
-            Cell::new(&format_permissions(metadata.permissions().mode())).fg(Color::Rgb {
+            Cell::new(format_permissions(metadata.permissions().mode())).fg(Color::Rgb {
                 r: theme.permissions.0,
                 g: theme.permissions.1,
                 b: theme.permissions.2,
             });
 
         table.add_row(vec![
-            Cell::new(&row_number.to_string()).fg(Color::Rgb {
+            Cell::new(row_number.to_string()).fg(Color::Rgb {
                 r: theme.row_number.0,
                 g: theme.row_number.1,
                 b: theme.row_number.2,
@@ -456,7 +456,7 @@ fn show_directory_table(theme: &Theme) {
     // Step 5: Show the table with colored borders
     let table_output = table.to_string();
     let colored_output = colorize_borders(&table_output, theme);
-    println!("{}", colored_output);
+    println!("{colored_output}");
 }
 
 fn format_size(size: u64) -> String {
@@ -471,7 +471,7 @@ fn format_size(size: u64) -> String {
     } else if size >= KB {
         format!("{:.1} KB", size as f64 / KB as f64)
     } else {
-        format!("{} B", size)
+        format!("{size} B")
     }
 }
 
@@ -480,7 +480,7 @@ fn format_time(time: SystemTime) -> String {
     match now.duration_since(time) {
         Ok(duration) => {
             if duration < Duration::minutes(1).to_std().unwrap() {
-                "just now".to_string()
+                format!("{} seconds ago", duration.as_secs())
             } else if duration < Duration::hours(1).to_std().unwrap() {
                 format!("{} minutes ago", duration.as_secs() / 60)
             } else if duration < Duration::days(1).to_std().unwrap() {
@@ -518,7 +518,7 @@ fn format_permissions(mode: u32) -> String {
         if mode & 0o002 != 0 { "w" } else { "-" },
         if mode & 0o001 != 0 { "x" } else { "-" }
     );
-    format!("{}{}{}", user, group, other)
+    format!("{user}{group}{other}")
 }
 
 fn colorize_borders(table_str: &str, theme: &Theme) -> String {
@@ -536,7 +536,7 @@ fn colorize_borders(table_str: &str, theme: &Theme) -> String {
                 match ch {
                     '╭' | '╮' | '╰' | '╯' | '│' | '─' | '┼' | '├' | '┤' | '┬' | '┴' | '═' | '╞'
                     | '╡' => {
-                        colored_line.push_str(&format!("{}{}{}", border_color, ch, reset_color));
+                        colored_line.push_str(&format!("{border_color}{ch}{reset_color}"));
                     }
                     _ => {
                         colored_line.push(ch);
