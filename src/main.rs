@@ -11,6 +11,7 @@ use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::time::SystemTime;
+use std::process::Command;
 use chrono::Duration;
 
 #[derive(Parser)]
@@ -19,6 +20,9 @@ use chrono::Duration;
 struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
+    /// Show CPU information
+    #[arg(long)]
+    cpu: bool,
 }
 
 #[derive(Subcommand)]
@@ -171,6 +175,156 @@ fn get_themes() -> Vec<Theme> {
             modified: (255, 158, 100),    // Orange
             permissions: (255, 203, 107), // Yellow
             row_number: (169, 177, 214),  // Foreground
+        },
+        Theme {
+            name: "onedark".to_string(),
+            description: "One Dark - Atom's iconic One Dark theme".to_string(),
+            border: (97, 175, 239),       // Blue
+            header: (198, 120, 221),      // Purple
+            file_name: (97, 175, 239),    // Blue
+            file_type: (97, 175, 239),    // Blue
+            dir_name: (198, 120, 221),    // Purple
+            dir_type: (198, 120, 221),    // Purple
+            file_size: (152, 195, 121),   // Green
+            dir_size: (92, 99, 112),      // Comment Gray
+            modified: (229, 192, 123),    // Yellow
+            permissions: (86, 182, 194),  // Cyan
+            row_number: (171, 178, 191),  // Light Gray
+        },
+        Theme {
+            name: "material".to_string(),
+            description: "Material - Google's Material Design color palette".to_string(),
+            border: (100, 181, 246),      // Blue 300
+            header: (156, 39, 176),       // Purple 600
+            file_name: (33, 150, 243),    // Blue 500
+            file_type: (33, 150, 243),    // Blue 500
+            dir_name: (103, 58, 183),     // Deep Purple 500
+            dir_type: (103, 58, 183),     // Deep Purple 500
+            file_size: (76, 175, 80),     // Green 500
+            dir_size: (117, 117, 117),    // Grey 600
+            modified: (255, 152, 0),      // Orange 500
+            permissions: (0, 188, 212),   // Cyan 500
+            row_number: (97, 97, 97),     // Grey 700
+        },
+        Theme {
+            name: "oceanic-next".to_string(),
+            description: "Oceanic Next - Sophisticated oceanic color scheme".to_string(),
+            border: (101, 115, 126),      // Base Gray
+            header: (192, 197, 206),      // Light Gray
+            file_name: (102, 153, 204),   // Blue
+            file_type: (102, 153, 204),   // Blue
+            dir_name: (193, 132, 1),      // Orange
+            dir_type: (193, 132, 1),      // Orange
+            file_size: (153, 173, 106),   // Green
+            dir_size: (79, 91, 102),      // Dark Gray
+            modified: (250, 208, 122),    // Yellow
+            permissions: (95, 179, 151),  // Teal
+            row_number: (160, 168, 180),  // Medium Gray
+        },
+        Theme {
+            name: "ayu-dark".to_string(),
+            description: "Ayu Dark - Modern minimalist dark theme".to_string(),
+            border: (83, 89, 97),         // Border
+            header: (255, 173, 0),        // Orange
+            file_name: (89, 181, 230),    // Blue
+            file_type: (89, 181, 230),    // Blue
+            dir_name: (209, 154, 102),    // Yellow
+            dir_type: (209, 154, 102),    // Yellow
+            file_size: (172, 203, 115),   // Green
+            dir_size: (92, 103, 115),     // Comment
+            modified: (242, 151, 24),     // Orange Light
+            permissions: (128, 203, 196), // Cyan
+            row_number: (151, 165, 180),  // Foreground
+        },
+        Theme {
+            name: "synthwave".to_string(),
+            description: "Synthwave - Retro 80s cyberpunk aesthetics".to_string(),
+            border: (241, 250, 140),      // Neon Yellow
+            header: (255, 20, 147),       // Deep Pink
+            file_name: (0, 255, 255),     // Cyan
+            file_type: (0, 255, 255),     // Cyan
+            dir_name: (255, 20, 147),     // Deep Pink
+            dir_type: (255, 20, 147),     // Deep Pink
+            file_size: (50, 255, 50),     // Bright Green
+            dir_size: (139, 69, 19),      // Saddle Brown
+            modified: (255, 165, 0),      // Orange
+            permissions: (255, 0, 255),   // Magenta
+            row_number: (255, 255, 255),  // White
+        },
+        Theme {
+            name: "github-dark".to_string(),
+            description: "GitHub Dark - GitHub's official dark theme".to_string(),
+            border: (48, 54, 61),         // Border
+            header: (255, 255, 255),      // White
+            file_name: (121, 192, 255),   // Blue
+            file_type: (121, 192, 255),   // Blue
+            dir_name: (255, 184, 108),    // Orange
+            dir_type: (255, 184, 108),    // Orange
+            file_size: (63, 185, 80),     // Green
+            dir_size: (139, 148, 158),    // Gray
+            modified: (255, 235, 59),     // Yellow
+            permissions: (164, 196, 255), // Light Blue
+            row_number: (201, 209, 217),  // Light Gray
+        },
+        Theme {
+            name: "cobalt2".to_string(),
+            description: "Cobalt2 - Electric blue theme for night owls".to_string(),
+            border: (0, 122, 204),        // Deep Blue
+            header: (255, 204, 102),      // Orange
+            file_name: (158, 206, 106),   // Green
+            file_type: (158, 206, 106),   // Green
+            dir_name: (255, 204, 102),    // Orange
+            dir_type: (255, 204, 102),    // Orange
+            file_size: (102, 217, 239),   // Cyan
+            dir_size: (128, 128, 128),    // Gray
+            modified: (255, 198, 109),    // Yellow
+            permissions: (255, 157, 77),  // Light Orange
+            row_number: (193, 193, 193),  // Light Gray
+        },
+        Theme {
+            name: "palenight".to_string(),
+            description: "Palenight - A darker Material Theme variant".to_string(),
+            border: (130, 170, 255),      // Blue
+            header: (199, 146, 234),      // Purple
+            file_name: (130, 170, 255),   // Blue
+            file_type: (130, 170, 255),   // Blue
+            dir_name: (255, 203, 107),    // Yellow
+            dir_type: (255, 203, 107),    // Yellow
+            file_size: (195, 232, 141),   // Green
+            dir_size: (103, 110, 149),    // Comment
+            modified: (255, 158, 100),    // Orange
+            permissions: (137, 221, 255), // Cyan
+            row_number: (171, 178, 191),  // Foreground
+        },
+        Theme {
+            name: "night-owl".to_string(),
+            description: "Night Owl - A theme for night owls by Sarah Drasner".to_string(),
+            border: (130, 170, 255),      // Blue
+            header: (199, 146, 234),      // Purple
+            file_name: (130, 170, 255),   // Blue
+            file_type: (130, 170, 255),   // Blue
+            dir_name: (195, 232, 141),    // Green
+            dir_type: (195, 232, 141),    // Green
+            file_size: (255, 203, 107),   // Yellow
+            dir_size: (103, 110, 149),    // Comment
+            modified: (255, 158, 100),    // Orange
+            permissions: (137, 221, 255), // Cyan
+            row_number: (214, 222, 235),  // Foreground
+        },
+        Theme {
+            name: "horizon".to_string(),
+            description: "Horizon - A beautifully warm dual theme".to_string(),
+            border: (250, 183, 149),      // Coral
+            header: (236, 196, 141),      // Apricot
+            file_name: (156, 207, 216),   // Turquoise
+            file_type: (156, 207, 216),   // Turquoise
+            dir_name: (250, 183, 149),    // Coral
+            dir_type: (250, 183, 149),    // Coral
+            file_size: (158, 180, 158),   // Sage
+            dir_size: (87, 82, 74),       // Comment
+            modified: (236, 196, 141),    // Apricot
+            permissions: (229, 152, 155), // Rose
+            row_number: (203, 204, 198),  // Foreground
         },
     ]
 }
@@ -350,8 +504,109 @@ fn get_theme_by_name(name: &str) -> Option<Theme> {
     get_themes().into_iter().find(|t| t.name == name)
 }
 
+fn show_cpu_info(theme: &Theme) {
+    // Run lscpu command and parse the output
+    let output = match Command::new("lscpu").output() {
+        Ok(output) => {
+            if output.status.success() {
+                String::from_utf8_lossy(&output.stdout).to_string()
+            } else {
+                eprintln!("Error running lscpu command");
+                return;
+            }
+        }
+        Err(e) => {
+            eprintln!("Failed to execute lscpu: {}", e);
+            return;
+        }
+    };
+
+    // Parse lscpu output
+    let mut cpu_info = Vec::new();
+    for line in output.lines() {
+        if line.trim().is_empty() {
+            continue;
+        }
+        if let Some((key, value)) = line.split_once(':') {
+            cpu_info.push((key.trim().to_string(), value.trim().to_string()));
+        }
+    }
+
+    // Create table with CPU information
+    let mut table = Table::new();
+    table
+        .load_preset(UTF8_BORDERS_ONLY)
+        .apply_modifier(UTF8_ROUND_CORNERS)
+        .set_content_arrangement(ContentArrangement::Dynamic)
+        .set_header(vec![
+            Cell::new("🖥️  CPU Information")
+                .add_attribute(Attribute::Bold)
+                .fg(Color::Rgb {
+                    r: theme.header.0,
+                    g: theme.header.1,
+                    b: theme.header.2,
+                }),
+            Cell::new("Value")
+                .add_attribute(Attribute::Bold)
+                .fg(Color::Rgb {
+                    r: theme.header.0,
+                    g: theme.header.1,
+                    b: theme.header.2,
+                }),
+        ]);
+
+    // Add CPU information to table with alternating colors
+    for (i, (key, value)) in cpu_info.iter().enumerate() {
+        let key_color = if i % 2 == 0 {
+            Color::Rgb {
+                r: theme.file_name.0,
+                g: theme.file_name.1,
+                b: theme.file_name.2,
+            }
+        } else {
+            Color::Rgb {
+                r: theme.dir_name.0,
+                g: theme.dir_name.1,
+                b: theme.dir_name.2,
+            }
+        };
+
+        let value_color = if i % 2 == 0 {
+            Color::Rgb {
+                r: theme.file_size.0,
+                g: theme.file_size.1,
+                b: theme.file_size.2,
+            }
+        } else {
+            Color::Rgb {
+                r: theme.modified.0,
+                g: theme.modified.1,
+                b: theme.modified.2,
+            }
+        };
+
+        table.add_row(vec![
+            Cell::new(key).fg(key_color),
+            Cell::new(value).fg(value_color),
+        ]);
+    }
+
+    // Show the table with colored borders
+    let table_output = table.to_string();
+    let colored_output = colorize_borders(&table_output, theme);
+    println!("{}", colored_output);
+}
+
 fn main() {
     let cli = Cli::parse();
+
+    // Handle --cpu flag
+    if cli.cpu {
+        let config = load_config();
+        let theme = get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone());
+        show_cpu_info(&theme);
+        return;
+    }
 
     match cli.command {
         Some(Commands::Workspace) => {
