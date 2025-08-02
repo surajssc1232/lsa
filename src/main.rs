@@ -1,23 +1,22 @@
-mod workspace;
-mod themes;
 mod config;
-mod icons;
-mod utils;
 mod display;
+mod icons;
+mod themes;
+mod utils;
+mod workspace;
 
 use clap::Parser;
 use inquire::Select;
 
-use themes::{get_themes, get_theme_by_name};
 use config::{Config, load_config, save_config};
-use display::{show_cpu_info, show_help, show_directory_table, show_tree, show_path_table};
+use display::{show_cpu_info, show_directory_table, show_help, show_path_table, show_tree};
+use themes::{get_theme_by_name, get_themes};
 
 #[derive(Parser)]
 #[command(name = "lsr")]
 #[command(about = "A colorful directory listing tool with multiple themes")]
 #[command(disable_help_flag = true)]
 struct Cli {
-
     #[arg(short, long)]
     help: bool,
 
@@ -61,7 +60,6 @@ struct Cli {
 fn main() {
     let cli = Cli::parse();
 
-
     if cli.help {
         let config = load_config();
         let theme =
@@ -70,17 +68,12 @@ fn main() {
         return;
     }
 
-
     if let Some(theme_option) = &cli.theme {
         let themes = get_themes();
 
         let selected_theme_name = match theme_option {
-            Some(theme_name) => {
-
-                theme_name.clone()
-            }
+            Some(theme_name) => theme_name.clone(),
             None => {
-
                 let theme_options: Vec<String> = themes
                     .iter()
                     .map(|t| format!("{} - {}", t.name, t.description))
@@ -98,7 +91,6 @@ fn main() {
                 }
             }
         };
-
 
         if let Some(theme) = themes.iter().find(|t| t.name == selected_theme_name) {
             let config = Config {
@@ -126,7 +118,6 @@ fn main() {
         }
     }
 
-
     if cli.cpu {
         let config = load_config();
         let theme =
@@ -135,14 +126,12 @@ fn main() {
         return;
     }
 
-
     if let Some(file_path) = &cli.workspace_file {
         if let Err(e) = workspace::copy_file_to_clipboard(file_path) {
             eprintln!("Error copying file: {e}");
         }
         return;
     }
-
 
     if let Some(folder_path) = &cli.workspace_folder {
         if let Err(e) = workspace::copy_folder_to_clipboard(folder_path) {
@@ -151,14 +140,12 @@ fn main() {
         return;
     }
 
-
     if cli.workspace {
         if let Err(e) = workspace::print_workspace_snapshot(cli.source_only, cli.max_size) {
             eprintln!("Error printing workspace: {e}");
         }
         return;
     }
-
 
     if cli.tree {
         let config = load_config();
@@ -168,7 +155,6 @@ fn main() {
         return;
     }
 
-
     if cli.path {
         let config = load_config();
         let theme =
@@ -177,8 +163,8 @@ fn main() {
         return;
     }
 
-
     let config = load_config();
     let theme = get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone());
     show_directory_table(&theme, cli.directory.as_deref());
 }
+

@@ -97,3 +97,4 @@ pub fn colorize_borders(table_str: &str, theme: &crate::themes::Theme) -> String
         .collect::<Vec<_>>()
         .join("\n")
 }
+

@@ -5,7 +5,6 @@ pub fn get_file_icon(path: &Path) -> &'static str {
         "\u{f07b}"
     } else if let Some(extension) = path.extension().and_then(|s| s.to_str()) {
         match extension.to_lowercase().as_str() {
-
             "rs" => "\u{e7a8}",
             "py" => "\u{e73c}",
             "js" | "mjs" => "\u{e74e}",
@@ -101,7 +100,6 @@ pub fn get_file_icon(path: &Path) -> &'static str {
             _ => "\u{f15b}",
         }
     } else {
-
         let filename = path
             .file_name()
             .and_then(|s| s.to_str())
@@ -123,3 +121,4 @@ pub fn get_file_icon(path: &Path) -> &'static str {
         }
     }
 }
+

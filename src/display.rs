@@ -4,16 +4,15 @@ use comfy_table::{
 };
 use std::env;
 use std::fs;
-use std::process::Command;
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
+use std::process::Command;
 
-use crate::themes::Theme;
 use crate::icons::get_file_icon;
-use crate::utils::{format_size, format_time, format_permissions, colorize_borders};
+use crate::themes::Theme;
+use crate::utils::{colorize_borders, format_permissions, format_size, format_time};
 
 pub fn show_cpu_info(theme: &Theme) {
-
     let output = match Command::new("lscpu").output() {
         Ok(output) => {
             if output.status.success() {
@@ -29,7 +28,6 @@ pub fn show_cpu_info(theme: &Theme) {
         }
     };
 
-
     let mut cpu_info = Vec::new();
     for line in output.lines() {
         if line.trim().is_empty() {
@@ -39,7 +37,6 @@ pub fn show_cpu_info(theme: &Theme) {
             cpu_info.push((key.trim().to_string(), value.trim().to_string()));
         }
     }
-
 
     let mut table = Table::new();
     table
@@ -62,7 +59,6 @@ pub fn show_cpu_info(theme: &Theme) {
                     b: theme.header.2,
                 }),
         ]);
-
 
     for (i, (key, value)) in cpu_info.iter().enumerate() {
         let key_color = if i % 2 == 0 {
@@ -98,7 +94,6 @@ pub fn show_cpu_info(theme: &Theme) {
             Cell::new(value).fg(value_color),
         ]);
     }
-
 
     let table_output = table.to_string();
     let colored_output = colorize_borders(&table_output, theme);
@@ -170,11 +165,7 @@ pub fn show_help(theme: &Theme) {
             "-a",
             "Show all files including hidden ones (for tree)",
         ),
-        (
-            "--path",
-            "",
-            "Show PATH environment variable directories",
-        ),
+        ("--path", "", "Show PATH environment variable directories"),
         (
             "--theme [NAME]",
             "",
@@ -232,7 +223,6 @@ pub fn show_help(theme: &Theme) {
         ]);
     }
 
-
     let title_color = format!(
         "\x1b[38;2;{};{};{}m",
         theme.header.0, theme.header.1, theme.header.2
@@ -244,7 +234,6 @@ pub fn show_help(theme: &Theme) {
         title_color, reset_color
     );
     println!();
-
 
     let table_output = table.to_string();
     let colored_output = colorize_borders(&table_output, theme);
@@ -309,7 +298,6 @@ pub fn show_help(theme: &Theme) {
 }
 
 pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>) {
-
     let target_dir = if let Some(path) = directory_path {
         std::path::PathBuf::from(path)
     } else {
@@ -317,7 +305,6 @@ pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>) {
     };
 
     let entries = fs::read_dir(&target_dir).expect("Could not read directory");
-
 
     let mut table = Table::new();
     table
@@ -369,7 +356,6 @@ pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>) {
                 }),
         ]);
 
-
     let mut row_number = 1;
     for entry in entries.flatten() {
         let path = entry.path();
@@ -385,7 +371,6 @@ pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>) {
         };
 
         let file_type = if path.is_dir() { "Directory" } else { "File" };
-
 
         let name_with_icon = format!("{} {}", get_file_icon(&path), name);
         let name_cell = if path.is_dir() {
@@ -416,7 +401,6 @@ pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>) {
             })
         };
 
-
         let size_cell = if path.is_dir() {
             Cell::new("-".to_string()).fg(Color::Rgb {
                 r: theme.dir_size.0,
@@ -431,7 +415,6 @@ pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>) {
             })
         };
 
-
         let modified_cell = match metadata.modified() {
             Ok(time) => Cell::new(format_time(time)).fg(Color::Rgb {
                 r: theme.modified.0,
@@ -444,7 +427,6 @@ pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>) {
                 b: theme.modified.2,
             }),
         };
-
 
         let permissions_cell = {
             #[cfg(unix)]
@@ -474,7 +456,6 @@ pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>) {
         row_number += 1;
     }
 
-
     let table_output = table.to_string();
     let colored_output = colorize_borders(&table_output, theme);
     println!("{colored_output}");
@@ -482,7 +463,6 @@ pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>) {
 
 pub fn show_tree(theme: &Theme, max_depth: Option<usize>, show_all: bool) {
     let current_dir = env::current_dir().expect("Could not get current directory");
-
 
     let root_name = current_dir
         .file_name()
@@ -498,7 +478,6 @@ pub fn show_tree(theme: &Theme, max_depth: Option<usize>, show_all: bool) {
         root_name
     );
     println!("{}", colored_root);
-
 
     display_tree_recursive(&current_dir, "", true, 0, max_depth, show_all, theme);
 }
@@ -548,7 +527,7 @@ pub fn show_path_table(theme: &Theme) {
         let exists = path.exists();
         let is_dir = path.is_dir();
         let is_symlink = path.is_symlink();
-        
+
         let status = if !exists {
             if is_symlink {
                 "Broken symlink"
@@ -567,7 +546,7 @@ pub fn show_path_table(theme: &Theme) {
 
         let dir_cell = if exists && is_dir {
             let icon = if is_symlink {
-                "↪" // Unicode symlink arrow
+                "↪" 
             } else {
                 get_file_icon(path)
             };
@@ -578,7 +557,7 @@ pub fn show_path_table(theme: &Theme) {
             })
         } else if is_symlink {
             Cell::new(format!("↪ {}", path_dir)).fg(Color::Rgb {
-                r: theme.permissions.0, // Use permissions color for symlinks
+                r: theme.permissions.0,
                 g: theme.permissions.1,
                 b: theme.permissions.2,
             })
@@ -592,12 +571,12 @@ pub fn show_path_table(theme: &Theme) {
 
         let status_cell = match status {
             "OK" => Cell::new(status).fg(Color::Rgb {
-                r: theme.file_size.0, // Use green-ish color from theme for success
+                r: theme.file_size.0,
                 g: theme.file_size.1,
                 b: theme.file_size.2,
             }),
             _ => Cell::new(status).fg(Color::Rgb {
-                r: theme.modified.0, // Use warning/error color from theme
+                r: theme.modified.0,
                 g: theme.modified.1,
                 b: theme.modified.2,
             }),
@@ -628,25 +607,21 @@ fn display_tree_recursive(
     show_all: bool,
     theme: &Theme,
 ) {
-
     if let Some(max) = max_depth {
         if current_depth >= max {
             return;
         }
     }
 
-
     let entries = match fs::read_dir(dir) {
         Ok(entries) => entries,
         Err(_) => return,
     };
 
-
     let mut items: Vec<_> = entries.filter_map(|entry| entry.ok()).collect();
     items.sort_by(|a, b| {
         let a_is_dir = a.path().is_dir();
         let b_is_dir = b.path().is_dir();
-
 
         match (a_is_dir, b_is_dir) {
             (true, false) => std::cmp::Ordering::Less,
@@ -654,7 +629,6 @@ fn display_tree_recursive(
             _ => a.file_name().cmp(&b.file_name()),
         }
     });
-
 
     if !show_all {
         items.retain(|item| !item.file_name().to_string_lossy().starts_with('.'));
@@ -668,13 +642,11 @@ fn display_tree_recursive(
 
         let file_name = path.file_name().unwrap_or_default().to_string_lossy();
 
-
         let current_prefix = if is_last_item {
             "└── "
         } else {
             "├── "
         };
-
 
         let icon = get_file_icon(&path);
         let (name_color, type_indicator) = if path.is_dir() {
@@ -695,13 +667,11 @@ fn display_tree_recursive(
             )
         };
 
-
         let tree_color = format!(
             "\x1b[38;2;{};{};{}m",
             theme.border.0, theme.border.1, theme.border.2
         );
         let reset_color = "\x1b[0m";
-
 
         println!(
             "{}{}{}{}{}{}{}{}{}",
@@ -728,7 +698,6 @@ fn display_tree_recursive(
             }
         );
 
-
         if path.is_dir() {
             let colored_next_prefix = if is_last_item {
                 "    "
@@ -748,3 +717,4 @@ fn display_tree_recursive(
         }
     }
 }
+
