@@ -56,7 +56,6 @@ fn is_source_file(path: &Path) -> bool {
             _ => false,
         }
     } else {
-
         let filename = path
             .file_name()
             .and_then(|s| s.to_str())
@@ -121,7 +120,6 @@ fn copy_to_clipboard(content: &str) -> io::Result<()> {
             }
         }
     }
-
 
     match ClipboardContext::new() {
         Ok(mut ctx) => {
@@ -265,7 +263,6 @@ pub fn print_workspace_snapshot(source_only: bool, max_size_kb: Option<usize>) -
         workspace_content.push_str(&file_section);
         total_size += file_section.len();
     }
-
 
     let size_kb = total_size as f64 / 1024.0;
     println!("Workspace size: {:.1}KB ({} characters)", size_kb, total_size);

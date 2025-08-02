@@ -42,7 +42,6 @@ pub fn format_time(time: SystemTime) -> String {
 }
 
 #[cfg(unix)]
-#[cfg(unix)]
 pub fn format_permissions(mode: u32) -> String {
     let user = format!(
         "{}{}{}",
