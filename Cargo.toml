@@ -7,8 +7,6 @@ edition = "2024"
 chrono = "0.4"
 clap = { version = "4.5.42", features = ["derive"] }
 comfy-table = "7.1.4"
-prettytable = "0.10.0"
-walkdir = "2.5.0"
 inquire = "0.7"
 serde = { version = "1.0", features = ["derive"] }
 toml = "0.8"
