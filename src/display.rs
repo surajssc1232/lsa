@@ -171,6 +171,11 @@ pub fn show_help(theme: &Theme) {
             "Show all files including hidden ones (for tree)",
         ),
         (
+            "--path",
+            "",
+            "Show PATH environment variable directories",
+        ),
+        (
             "--theme [NAME]",
             "",
             "Set theme as default (interactive if no name)",
@@ -261,6 +266,10 @@ pub fn show_help(theme: &Theme) {
     );
     println!(
         "  {}lsr --tree{}                       # Show tree view",
+        example_color, reset_color
+    );
+    println!(
+        "  {}lsr --path{}                       # Show PATH environment directories",
         example_color, reset_color
     );
     println!(
@@ -492,6 +501,122 @@ pub fn show_tree(theme: &Theme, max_depth: Option<usize>, show_all: bool) {
 
 
     display_tree_recursive(&current_dir, "", true, 0, max_depth, show_all, theme);
+}
+
+pub fn show_path_table(theme: &Theme) {
+    let path_env = match env::var("PATH") {
+        Ok(path) => path,
+        Err(_) => {
+            println!("Error: Could not read PATH environment variable");
+            return;
+        }
+    };
+
+    let path_dirs: Vec<&str> = path_env.split(':').collect();
+
+    let mut table = Table::new();
+    table
+        .load_preset(UTF8_BORDERS_ONLY)
+        .apply_modifier(UTF8_ROUND_CORNERS)
+        .set_content_arrangement(ContentArrangement::Dynamic)
+        .set_header(vec![
+            Cell::new("#")
+                .add_attribute(Attribute::Bold)
+                .fg(Color::Rgb {
+                    r: theme.header.0,
+                    g: theme.header.1,
+                    b: theme.header.2,
+                }),
+            Cell::new("Directory")
+                .add_attribute(Attribute::Bold)
+                .fg(Color::Rgb {
+                    r: theme.header.0,
+                    g: theme.header.1,
+                    b: theme.header.2,
+                }),
+            Cell::new("Status")
+                .add_attribute(Attribute::Bold)
+                .fg(Color::Rgb {
+                    r: theme.header.0,
+                    g: theme.header.1,
+                    b: theme.header.2,
+                }),
+        ]);
+
+    for (index, path_dir) in path_dirs.iter().enumerate() {
+        let path = std::path::Path::new(path_dir);
+        let exists = path.exists();
+        let is_dir = path.is_dir();
+        let is_symlink = path.is_symlink();
+        
+        let status = if !exists {
+            if is_symlink {
+                "Broken symlink"
+            } else {
+                "Missing"
+            }
+        } else if is_symlink && is_dir {
+            "Symlink to directory"
+        } else if is_symlink {
+            "Symlink to file"
+        } else if !is_dir {
+            "Not a directory"
+        } else {
+            "OK"
+        };
+
+        let dir_cell = if exists && is_dir {
+            let icon = if is_symlink {
+                "↪" // Unicode symlink arrow
+            } else {
+                get_file_icon(path)
+            };
+            Cell::new(format!("{} {}", icon, path_dir)).fg(Color::Rgb {
+                r: theme.dir_name.0,
+                g: theme.dir_name.1,
+                b: theme.dir_name.2,
+            })
+        } else if is_symlink {
+            Cell::new(format!("↪ {}", path_dir)).fg(Color::Rgb {
+                r: theme.permissions.0, // Use permissions color for symlinks
+                g: theme.permissions.1,
+                b: theme.permissions.2,
+            })
+        } else {
+            Cell::new(format!("✗ {}", path_dir)).fg(Color::Rgb {
+                r: theme.file_name.0,
+                g: theme.file_name.1,
+                b: theme.file_name.2,
+            })
+        };
+
+        let status_cell = match status {
+            "OK" => Cell::new(status).fg(Color::Rgb {
+                r: theme.file_size.0, // Use green-ish color from theme for success
+                g: theme.file_size.1,
+                b: theme.file_size.2,
+            }),
+            _ => Cell::new(status).fg(Color::Rgb {
+                r: theme.modified.0, // Use warning/error color from theme
+                g: theme.modified.1,
+                b: theme.modified.2,
+            }),
+        };
+
+        table.add_row(vec![
+            Cell::new((index + 1).to_string()).fg(Color::Rgb {
+                r: theme.row_number.0,
+                g: theme.row_number.1,
+                b: theme.row_number.2,
+            }),
+            dir_cell,
+            status_cell,
+        ]);
+    }
+
+    let table_output = table.to_string();
+    let colored_output = colorize_borders(&table_output, theme);
+    println!("{colored_output}");
 }
 
 fn display_tree_recursive(

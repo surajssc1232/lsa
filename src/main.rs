@@ -10,7 +10,7 @@ use inquire::Select;
 
 use themes::{get_themes, get_theme_by_name};
 use config::{Config, load_config, save_config};
-use display::{show_cpu_info, show_help, show_directory_table, show_tree};
+use display::{show_cpu_info, show_help, show_directory_table, show_tree, show_path_table};
 
 #[derive(Parser)]
 #[command(name = "lsr")]
@@ -50,6 +50,9 @@ struct Cli {
 
     #[arg(long, value_name = "THEME")]
     theme: Option<Option<String>>,
+
+    #[arg(long)]
+    path: bool,
 
     #[arg(value_name = "DIRECTORY")]
     directory: Option<String>,
@@ -162,6 +165,15 @@ fn main() {
         let theme =
             get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone());
         show_tree(&theme, cli.depth, cli.all);
+        return;
+    }
+
+
+    if cli.path {
+        let config = load_config();
+        let theme =
+            get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone());
+        show_path_table(&theme);
         return;
     }
 
