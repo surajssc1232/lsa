@@ -1219,10 +1219,10 @@ fn display_tree_recursive(
         let file_name = path.file_name().unwrap_or_default().to_string_lossy();
 
 
-        let (current_prefix, next_prefix) = if is_last_item {
-            ("└── ", "    ")
+        let current_prefix = if is_last_item {
+            "└── "
         } else {
-            ("├── ", "│   ")
+            "├── "
         };
 
 
@@ -1280,7 +1280,12 @@ fn display_tree_recursive(
 
 
         if path.is_dir() {
-            let new_prefix = format!("{}{}", prefix, next_prefix);
+            let colored_next_prefix = if is_last_item {
+                "    "
+            } else {
+                &format!("{}│{}{:3}", tree_color, reset_color, "")
+            };
+            let new_prefix = format!("{}{}", prefix, colored_next_prefix);
             display_tree_recursive(
                 &path,
                 &new_prefix,
