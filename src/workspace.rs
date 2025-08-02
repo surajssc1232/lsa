@@ -226,10 +226,6 @@ pub fn copy_folder_to_clipboard(folder_path: &str) -> io::Result<()> {
 
     let size_kb = workspace_content.len() as f64 / 1024.0;
     println!("Folder size: {:.1}KB ({} characters)", size_kb, workspace_content.len());
-    
-    if size_kb > 32.0 {
-        println!("⚠️  Content is large (>32KB). Some LLMs may truncate input.");
-    }
 
     copy_to_clipboard(&workspace_content)
 }
@@ -273,11 +269,6 @@ pub fn print_workspace_snapshot(source_only: bool, max_size_kb: Option<usize>) -
     // Add size information
     let size_kb = total_size as f64 / 1024.0;
     println!("Workspace size: {:.1}KB ({} characters)", size_kb, total_size);
-    
-    if size_kb > 32.0 {
-        println!("⚠️  Content is large (>32KB). Some LLMs may truncate input.");
-        println!("💡 Try: lsr --workspace --source-only or --max-size 32");
-    }
 
     copy_to_clipboard(&workspace_content)
 }
