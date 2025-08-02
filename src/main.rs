@@ -1,7 +1,6 @@
 mod workspace;
 use chrono::Duration;
-use chrono::Duration;
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use comfy_table::{
     Attribute, Cell, Color, ContentArrangement, Table, modifiers::UTF8_ROUND_CORNERS,
     presets::UTF8_BORDERS_ONLY,
@@ -11,32 +10,32 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
+use std::path::PathBuf;
 use std::process::Command;
-use std::time::SystemTimemTime;
+use std::time::SystemTime;
 
 #[derive(Parser)]
 #[command(name = "lsr")]
 #[command(about = "A colorful directory listing tool with multiple themes")]
 struct Cli {
-    #[command(subcommand)]
-    command: Option<Commands>,
     /// Show CPU information
     #[arg(long)]
     cpu: bool,
-}
-
-#[derive(Subcommand)]
-enum Commands {
     /// Show workspace snapshot
-    Workspace,
-    /// Select or change theme
-    Theme {
-        /// Theme name (optional, shows interactive menu if not provided)
-        name: Option<String>,
-        /// Set theme as default for future use
-        #[arg(long)]
-        set: bool,
-    },
+    #[arg(long)]
+    workspace: bool,
+    /// Show directory tree view
+    #[arg(short = 't', long)]
+    tree: bool,
+    /// Maximum depth for tree view
+    #[arg(short, long, requires = "tree")]
+    depth: Option<usize>,
+    /// Show all files including hidden ones (for tree view)
+    #[arg(short = 'a', long, requires = "tree")]
+    all: bool,
+    /// Set theme as default (shows interactive menu if no theme name provided)
+    #[arg(long, value_name = "THEME")]
+    theme: Option<Option<String>>,
 }
 
 #[derive(Clone)]
@@ -179,47 +178,47 @@ fn get_themes() -> Vec<Theme> {
         Theme {
             name: "onedark".to_string(),
             description: "One Dark - Atom's iconic One Dark theme".to_string(),
-            border: (97, 175, 239),     // Blue
-            header: (198, 120, 221),     / Purple
-            file_name: (97, 175, 239),  // Blue
-            file_type: (97, 175, 239),   / Blue
-            dir_name: (198, 120, 221),  // Purple
-            dir_type: (198, 120, 221),  // Purple
-            file_size: (152, 195, 121),  / Green
-            dir_size: (92, 99, 112),    // Comment Gray
-            modified: (229, 192, 123),   / Yellow
-            permissions: (86, 182, 194),// Cyan
-            row_number: (171, 178, 191),// Light Gray
+            border: (97, 175, 239),       // Blue
+            header: (198, 120, 221),      // Purple
+            file_name: (97, 175, 239),    // Blue
+            file_type: (97, 175, 239),    // Blue
+            dir_name: (198, 120, 221),    // Purple
+            dir_type: (198, 120, 221),    // Purple
+            file_size: (152, 195, 121),   // Green
+            dir_size: (92, 99, 112),      // Comment Gray
+            modified: (229, 192, 123),    // Yellow
+            permissions: (86, 182, 194),  // Cyan
+            row_number: (171, 178, 191),  // Light Gray
         },
         Theme {
             name: "material".to_string(),
             description: "Material - Google's Material Design color palette".to_string(),
-            border: (100, 181, 246),     Blue 300
-            header: (156, 39, 176),   // Purple 600
-            file_name: (33, 150, 243),// Blue 500
-            file_type: (33, 150, 243),// Blue 500
-            dir_name: (103, 58, 183), // Deep Purple 500
-            dir_type: (103, 58, 183),    Deep Purple 500
-            file_size: (76, 175, 80),    Green 500
-            dir_size: (117, 117, 117),   Grey 600
-            modified: (255, 152, 0),     Orange 500
-            permissions: (0, 188, 212),/ Cyan 500
-            row_number: (97, 97, 97), // Grey 700
+            border: (100, 181, 246),      // Blue 300
+            header: (156, 39, 176),       // Purple 600
+            file_name: (33, 150, 243),    // Blue 500
+            file_type: (33, 150, 243),    // Blue 500
+            dir_name: (103, 58, 183),     // Deep Purple 500
+            dir_type: (103, 58, 183),     // Deep Purple 500
+            file_size: (76, 175, 80),     // Green 500
+            dir_size: (117, 117, 117),    // Grey 600
+            modified: (255, 152, 0),      // Orange 500
+            permissions: (0, 188, 212),   // Cyan 500
+            row_number: (97, 97, 97),     // Grey 700
         },
         Theme {
             name: "oceanic-next".to_string(),
             description: "Oceanic Next - Sophisticated oceanic color scheme".to_string(),
-            border: (101, 115, 126),     / Base Gray
-            header: (192, 197, 206),    // Light Gray
-            file_name: (102, 153, 204),  / Blue
-            file_type: (102, 153, 204), // Blue
-            dir_name: (193, 132, 1),     / Orange
-            dir_type: (193, 132, 1),    // Orange
-            file_size: (153, 173, 106),  / Green
-            dir_size: (79, 91, 102),    // Dark Gray
-            modified: (250, 208, 122),  // Yellow
-            permissions: (95, 179, 151),// Teal
-            row_number: (160, 168, 180),// Medium Gray
+            border: (101, 115, 126),      // Base Gray
+            header: (192, 197, 206),      // Light Gray
+            file_name: (102, 153, 204),   // Blue
+            file_type: (102, 153, 204),   // Blue
+            dir_name: (193, 132, 1),      // Orange
+            dir_type: (193, 132, 1),      // Orange
+            file_size: (153, 173, 106),   // Green
+            dir_size: (79, 91, 102),      // Dark Gray
+            modified: (250, 208, 122),    // Yellow
+            permissions: (95, 179, 151),  // Teal
+            row_number: (160, 168, 180),  // Medium Gray
         },
         Theme {
             name: "ayu-dark".to_string(),
@@ -239,17 +238,17 @@ fn get_themes() -> Vec<Theme> {
         Theme {
             name: "synthwave".to_string(),
             description: "Synthwave - Retro 80s cyberpunk aesthetics".to_string(),
-            border: (241, 250, 140),     / Neon Yellow
-            header: (255, 20, 147),     // Deep Pink
-            file_name: (0, 255, 255),    / Cyan
-            file_type: (0, 255, 255),   // Cyan
-            dir_name: (255, 20, 147),    / Deep Pink
-            dir_type: (255, 20, 147),   // Deep Pink
-            file_size: (50, 255, 50),   // Bright Green
-            dir_size: (139, 69, 19),     / Saddle Brown
-            modified: (255, 165, 0),    // Orange
-            permissions: (255, 0, 255),  / Magenta
-            row_number: (255, 255, 255),// White
+            border: (241, 250, 140),      // Neon Yellow
+            header: (255, 20, 147),       // Deep Pink
+            file_name: (0, 255, 255),     // Cyan
+            file_type: (0, 255, 255),     // Cyan
+            dir_name: (255, 20, 147),     // Deep Pink
+            dir_type: (255, 20, 147),     // Deep Pink
+            file_size: (50, 255, 50),     // Bright Green
+            dir_size: (139, 69, 19),      // Saddle Brown
+            modified: (255, 165, 0),      // Orange
+            permissions: (255, 0, 255),   // Magenta
+            row_number: (255, 255, 255),  // White
         },
         Theme {
             name: "github-dark".to_string(),
@@ -269,17 +268,17 @@ fn get_themes() -> Vec<Theme> {
         Theme {
             name: "cobalt2".to_string(),
             description: "Cobalt2 - Electric blue theme for night owls".to_string(),
-            border: (0, 122, 204),       / Deep Blue
-            header: (255, 204, 102),    // Orange
-            file_name: (158, 206, 106),  / Green
-            file_type: (158, 206, 106), // Green
-            dir_name: (255, 204, 102),  // Orange
-            dir_type: (255, 204, 102),   / Orange
-            file_size: (102, 217, 239), // Cyan
-            dir_size: (128, 128, 128),   / Gray
-            modified: (255, 198, 109),  // Yellow
-            permissions: (255, 157, 77),// Light Orange
-            row_number: (193, 193, 193),// Light Gray
+            border: (0, 122, 204),        // Deep Blue
+            header: (255, 204, 102),      // Orange
+            file_name: (158, 206, 106),   // Green
+            file_type: (158, 206, 106),   // Green
+            dir_name: (255, 204, 102),    // Orange
+            dir_type: (255, 204, 102),    // Orange
+            file_size: (102, 217, 239),   // Cyan
+            dir_size: (128, 128, 128),    // Gray
+            modified: (255, 198, 109),    // Yellow
+            permissions: (255, 157, 77),  // Light Orange
+            row_number: (193, 193, 193),  // Light Gray
         },
         Theme {
             name: "palenight".to_string(),
@@ -401,23 +400,23 @@ fn get_file_icon(path: &std::path::Path) -> &'static str {
             "sh" | "bash" | "zsh" | "fish" => "\u{f489}", //
             "ps1" => "\u{f489}",              //
             // Web technologies
-            "html" | "htm" => "\u{e60e}",   /
-            "css" => "\u{e614}",              //
-            "scss" | "sass" => "\u{e603}", //
-            "less" => "\u{e758}",             //
-            "vue" => "\u{fd42}",               // ﵂
-            "svelte" => "\u{e697}",           //
-            "angular" => "\u{e753}",  //
+            "html" | "htm" => "\u{e60e}",       // 
+            "css" => "\u{e614}",                 // 
+            "scss" | "sass" => "\u{e603}",       // 
+            "less" => "\u{e758}",                // 
+            "vue" => "\u{fd42}",                 // ﵂
+            "svelte" => "\u{e697}",              // 
+            "angular" => "\u{e753}",             // 
             // Configuration and data
-            "json" => "\u{e60b}",                 //
-            "toml" => "\u{e615}",                 //
-            "yaml" | "yml" => "\u{f481}",      //
-            "xml" => "\u{e619}",                  //
-            "ini" => "\u{f17a}",                  //
-            "conf" | "config" => "\u{e615}", //
-            "env" => "\u{f462}",                  //
-            "dockerfile" => "\u{f308}",          //
-            "makefile" => "\u{f728}",/
+            "json" => "\u{e60b}",                // 
+            "toml" => "\u{e615}",                // 
+            "yaml" | "yml" => "\u{f481}",        // 
+            "xml" => "\u{e619}",                 // 
+            "ini" => "\u{f17a}",                 // 
+            "conf" | "config" => "\u{e615}",     // 
+            "env" => "\u{f462}",                 // 
+            "dockerfile" => "\u{f308}",          // 
+            "makefile" => "\u{f728}",            // 
             // Documentation
             "md" | "markdown" => "\u{e609}", //
             "txt" => "\u{f15c}",                  //
@@ -457,34 +456,33 @@ fn get_file_icon(path: &std::path::Path) -> &'static str {
             "db" | "sqlite" | "sqlite3" => "\u{f1c0}", //
             "sql" => "\u{f1c0}",           //
             // Lock and temp files
-            "lock" => "\u{f023}",               //
-            "tmp" | "temp" => "\u{f2ed}",     /
-            "bak" | "backup" => "\u{f56e}", //
-            "log" => "\u{f18e}",   //
+            "lock" => "\u{f023}",                // 
+            "tmp" | "temp" => "\u{f2ed}",        // 
+            "bak" | "backup" => "\u{f56e}",      // 
+            "log" => "\u{f18e}",                 // 
             // Other
             _ => "\u{f15b}",
         }
     } else {
         // Handle special filenames without extensions
         let filename = path
-            
             .file_name()
             .and_then(|s| s.to_str())
             .unwrap_or("")
-    .to_lowercase();
+            .to_lowercase();
 
-        match filename.as_str() {  
-            "dockerfile" => "\u{f308}",     /
-            "makefile" => "\u{f728}",       /
-            "readme" => "\u{f7fb}",         /
-            "license" => "\u{f718}",        /
-            "changelog" => "\u{f7d9}",      /
-            "cargo.toml" => "\u{e7a8}",   //
-            "package.json" => "\u{e718}  ", /
-            ".gitignore" => "\u{f1d3}",    /
-            ".gitmodules" => "\u{f1d3}",    /
-            ".env" => "\u{f462}",           /
-            _ => "\u{f15b}",              //
+        match filename.as_str() {
+            "dockerfile" => "\u{f308}",       // 
+            "makefile" => "\u{f728}",         // 
+            "readme" => "\u{f7fb}",           // 
+            "license" => "\u{f718}",          // 
+            "changelog" => "\u{f7d9}",        // 
+            "cargo.toml" => "\u{e7a8}",       // 
+            "package.json" => "\u{e718}",     // 
+            ".gitignore" => "\u{f1d3}",       // 
+            ".gitmodules" => "\u{f1d3}",      // 
+            ".env" => "\u{f462}",             // 
+            _ => "\u{f15b}",                  // 
         }
     }
 }
@@ -589,94 +587,90 @@ fn show_cpu_info(theme: &Theme) {
 fn main() {
     let cli = Cli::parse();
 
+    // Handle --theme flag
+    if let Some(theme_option) = &cli.theme {
+        let themes = get_themes();
+        
+        let selected_theme_name = match theme_option {
+            Some(theme_name) => {
+                // Theme name provided directly
+                theme_name.clone()
+            }
+            None => {
+                // No theme name provided, show interactive menu
+                let theme_options: Vec<String> = themes
+                    .iter()
+                    .map(|t| format!("{} - {}", t.name, t.description))
+                    .collect();
+
+                match Select::new("Select a theme to set as default:", theme_options).prompt() {
+                    Ok(selection) => {
+                        let theme_name = selection.split(" - ").next().unwrap();
+                        theme_name.to_string()
+                    }
+                    Err(_) => {
+                        println!("Theme selection cancelled.");
+                        return;
+                    }
+                }
+            }
+        };
+
+        // Find and save the selected theme
+        if let Some(theme) = themes.iter().find(|t| t.name == selected_theme_name) {
+            let config = Config {
+                default_theme: theme.name.clone(),
+            };
+            match save_config(&config) {
+                Ok(_) => {
+                    println!("✓ Set '{}' as default theme", theme.name);
+                    return;
+                }
+                Err(e) => {
+                    eprintln!("Error saving config: {e}");
+                    return;
+                }
+            }
+        } else {
+            println!("Theme '{}' not found. Available themes:", selected_theme_name);
+            for theme in themes {
+                println!("  {} - {}", theme.name, theme.description);
+            }
+            return;
+        }
+    }
+
     // Handle --cpu flag
     if cli.cpu {
-        let config 
-           = load_config();
+        let config = load_config();
         let theme =
             get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone());
         show_cpu_info(&theme);
         return;
     }
 
-    match cli.command {
-        Some(Commands::Workspace) => {
-            if let Err(e) = workspace::print_workspace_snapshot() {
-                eprintln!("Error printing workspace: {e}");
-            }
+    // Handle --workspace flag
+    if cli.workspace {
+        if let Err(e) = workspace::print_workspace_snapshot() {
+            eprintln!("Error printing workspace: {e}");
         }
-        Some(Commands::Theme { name, set }) => {
-            handle_theme_command(name, set);
-        }
-        None => {
-            // Default behavior: show directory listing with saved theme
-            let config = load_config();
-            let theme =
-                get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone()); // Fallback to Catppuccin
-            show_directory_table(&theme);
-        }
+        return;
     }
-}
 
-fn handle_theme_command(theme_name: Option<String>, set_as_default: bool) {
-    let themes = get_themes();
-
-    let selected_theme = if let Some(name) = theme_name {
-        // Direct theme selection
-        themes.iter().find(|t| t.name == name).cloned()
-    } else {
-        // Interactive theme selection
-        let theme_options: Vec<String> = themes
-            .iter()
-            .map(|t| format!("{} - {}", t.name, t.description))
-            .collect();
-
-        match Select::new("Select a theme:", theme_options).prompt() {
-            Ok(selection) => {
-                let theme_name = selection.split(" - ").next().unwrap();
-                themes.iter().find(|t| t.name == theme_name).cloned()
-            }
-            Err(_) => {
-                println!("Theme selection cancelled.");
-                return;
-            }
-        }
-    };
-
-    match selected_theme {
-        Some(theme) => {
-            if set_as_default {
-                // Save theme as default
-                let config = Config {
-                    default_theme: theme.name.clone(),
-                };
-
-                match save_config(&config) {
-                    Ok(_) => {
-                        println!("✓ Set '{}' as default theme", theme.name);
-                        println!("Using theme: {} - {}", theme.name, theme.description);
-                    }
-                    Err(e) => {
-                        eprintln!("Error saving config: {e}");
-                        println!(
-                            "Using theme: {} - {} (not saved)",
-                            theme.name, theme.description
-                        );
-                    }
-                }
-            } else {
-                println!("Using theme: {} - {}", theme.name, theme.description);
-                println!("💡 Use --set to make this your default theme");
-            }
-            show_directory_table(&theme);
-        }
-        None => {
-            println!("Theme not found. Available themes:");
-            for theme in themes {
-                println!("  {} - {}", theme.name, theme.description);
-            }
-        }
+    // Handle --tree flag
+    if cli.tree {
+        let config = load_config();
+        let theme =
+            get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone());
+        show_tree(&theme, cli.depth, cli.all);
+        return;
     }
+
+    // Default behavior: show directory listing with saved theme
+    let config = load_config();
+    let theme =
+        get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone());
+    show_directory_table(&theme);
 }
 
 fn show_directory_table(theme: &Theme) {
@@ -902,6 +896,145 @@ fn format_permissions(mode: u32) -> String {
         if mode & 0o001 != 0 { "x" } else { "-" }
     );
     format!("{user}{group}{other}")
+}
+
+fn show_tree(theme: &Theme, max_depth: Option<usize>, show_all: bool) {
+    let current_dir = env::current_dir().expect("Could not get current directory");
+    
+    // Print the root directory
+    let root_name = current_dir.file_name()
+        .unwrap_or_default()
+        .to_string_lossy();
+    
+    let colored_root = format!(
+        "\x1b[38;2;{};{};{}m{} {}\x1b[0m",
+        theme.dir_name.0, theme.dir_name.1, theme.dir_name.2,
+        get_file_icon(&current_dir),
+        root_name
+    );
+    println!("{}", colored_root);
+    
+    // Build and display the tree
+    display_tree_recursive(&current_dir, "", true, 0, max_depth, show_all, theme);
+}
+
+fn display_tree_recursive(
+    dir: &std::path::Path,
+    prefix: &str,
+    _is_last: bool,
+    current_depth: usize,
+    max_depth: Option<usize>,
+    show_all: bool,
+    theme: &Theme,
+) {
+    // Check depth limit
+    if let Some(max) = max_depth {
+        if current_depth >= max {
+            return;
+        }
+    }
+
+    // Read directory entries
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(_) => return,
+    };
+
+    // Collect and sort entries
+    let mut items: Vec<_> = entries.filter_map(|entry| entry.ok()).collect();
+    items.sort_by(|a, b| {
+        let a_is_dir = a.path().is_dir();
+        let b_is_dir = b.path().is_dir();
+        
+        // Directories first, then files
+        match (a_is_dir, b_is_dir) {
+            (true, false) => std::cmp::Ordering::Less,
+            (false, true) => std::cmp::Ordering::Greater,
+            _ => a.file_name().cmp(&b.file_name()),
+        }
+    });
+
+    // Filter hidden files if not showing all
+    if !show_all {
+        items.retain(|item| {
+            !item.file_name().to_string_lossy().starts_with('.')
+        });
+    }
+
+    let total_items = items.len();
+    
+    for (index, entry) in items.iter().enumerate() {
+        let path = entry.path();
+        let is_last_item = index == total_items - 1;
+        
+        let file_name = path.file_name()
+            .unwrap_or_default()
+            .to_string_lossy();
+
+        // Choose tree characters
+        let (current_prefix, next_prefix) = if is_last_item {
+            ("└── ", "    ")
+        } else {
+            ("├── ", "│   ")
+        };
+
+        // Get file icon and colors
+        let icon = get_file_icon(&path);
+        let (name_color, type_indicator) = if path.is_dir() {
+            (
+                format!("\x1b[38;2;{};{};{}m", theme.dir_name.0, theme.dir_name.1, theme.dir_name.2),
+                "/"
+            )
+        } else {
+            (
+                format!("\x1b[38;2;{};{};{}m", theme.file_name.0, theme.file_name.1, theme.file_name.2),
+                ""
+            )
+        };
+
+        // Color the tree structure
+        let tree_color = format!(
+            "\x1b[38;2;{};{};{}m",
+            theme.border.0, theme.border.1, theme.border.2
+        );
+        let reset_color = "\x1b[0m";
+
+        // Print the current item
+        println!(
+            "{}{}{}{}{}{}{}{}{}",
+            prefix,
+            tree_color,
+            current_prefix,
+            reset_color,
+            name_color,
+            icon,
+            " ",
+            file_name,
+            if path.is_dir() { 
+                format!("{}{}{}", 
+                    format!("\x1b[38;2;{};{};{}m", theme.dir_type.0, theme.dir_type.1, theme.dir_type.2),
+                    type_indicator, 
+                    reset_color
+                ) 
+            } else { 
+                reset_color.to_string() 
+            }
+        );
+
+        // Recursively display subdirectories
+        if path.is_dir() {
+            let new_prefix = format!("{}{}", prefix, next_prefix);
+            display_tree_recursive(
+                &path,
+                &new_prefix,
+                is_last_item,
+                current_depth + 1,
+                max_depth,
+                show_all,
+                theme,
+            );
+        }
+    }
 }
 
 fn colorize_borders(table_str: &str, theme: &Theme) -> String {

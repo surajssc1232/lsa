@@ -3,7 +3,6 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 
-/// Recursively collect all files in the directory
 pub fn collect_files(dir: &Path, base: &Path, files: &mut Vec<PathBuf>) -> io::Result<()> {
     for entry in fs::read_dir(dir)? {
         let entry = entry?;
@@ -17,9 +16,8 @@ pub fn collect_files(dir: &Path, base: &Path, files: &mut Vec<PathBuf>) -> io::R
     Ok(())
 }
 
-/// Read and format the entire workspace for LLM context
 pub fn print_workspace_snapshot() -> io::Result<()> {
-    let base = env::current_dir()?; // Current workspace
+    let base = env::current_dir()?;
     println!("📦 Workspace: {}\n", base.display());
 
     let mut files = Vec::new();
