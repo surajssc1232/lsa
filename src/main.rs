@@ -50,6 +50,9 @@ struct Cli {
 
     #[arg(long, value_name = "THEME")]
     theme: Option<Option<String>>,
+
+    #[arg(value_name = "DIRECTORY")]
+    directory: Option<String>,
 }
 
 fn main() {
@@ -165,5 +168,5 @@ fn main() {
 
     let config = load_config();
     let theme = get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone());
-    show_directory_table(&theme);
+    show_directory_table(&theme, cli.directory.as_deref());
 }

@@ -252,7 +252,11 @@ pub fn show_help(theme: &Theme) {
         theme.file_name.0, theme.file_name.1, theme.file_name.2
     );
     println!(
-        "  {}lsr{}                              # Show directory listing",
+        "  {}lsr{}                              # Show current directory listing",
+        example_color, reset_color
+    );
+    println!(
+        "  {}lsr src{}                          # Show specific directory listing",
         example_color, reset_color
     );
     println!(
@@ -295,12 +299,15 @@ pub fn show_help(theme: &Theme) {
     );
 }
 
-pub fn show_directory_table(theme: &Theme) {
+pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>) {
 
-    let current_dir = env::current_dir().expect("Could not get current directory");
+    let target_dir = if let Some(path) = directory_path {
+        std::path::PathBuf::from(path)
+    } else {
+        env::current_dir().expect("Could not get current directory")
+    };
 
-
-    let entries = fs::read_dir(&current_dir).expect("Could not read current directory");
+    let entries = fs::read_dir(&target_dir).expect("Could not read directory");
 
 
     let mut table = Table::new();
