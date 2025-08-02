@@ -20,37 +20,37 @@ use std::time::SystemTime;
 #[command(about = "A colorful directory listing tool with multiple themes")]
 #[command(disable_help_flag = true)]
 struct Cli {
-    /// Show help information
+
     #[arg(short, long)]
     help: bool,
-    /// Show CPU information
+
     #[arg(long)]
     cpu: bool,
-    /// Show workspace snapshot
+
     #[arg(long)]
     workspace: bool,
-    /// Copy specific file to clipboard
+
     #[arg(long, value_name = "FILE_PATH")]
     workspace_file: Option<String>,
-    /// Copy specific folder to clipboard
+
     #[arg(long, value_name = "FOLDER_PATH")]
     workspace_folder: Option<String>,
-    /// Only include source files in workspace (src/, *.rs, *.js, *.py, etc.)
+
     #[arg(long, requires = "workspace")]
     source_only: bool,
-    /// Maximum size limit for workspace output in KB (default: no limit)
+
     #[arg(long, requires = "workspace", value_name = "KB")]
     max_size: Option<usize>,
-    /// Show directory tree view
+
     #[arg(short = 't', long)]
     tree: bool,
-    /// Maximum depth for tree view
+
     #[arg(short, long, requires = "tree")]
     depth: Option<usize>,
-    /// Show all files including hidden ones (for tree view)
+
     #[arg(short = 'a', long, requires = "tree")]
     all: bool,
-    /// Set theme as default (shows interactive menu if no theme name provided)
+
     #[arg(long, value_name = "THEME")]
     theme: Option<Option<String>>,
 }
@@ -90,257 +90,257 @@ fn get_themes() -> Vec<Theme> {
         Theme {
             name: "catppuccin".to_string(),
             description: "Catppuccin - Soothing pastel theme".to_string(),
-            border: (183, 189, 248),      // Lavender
-            header: (203, 166, 247),      // Mauve
-            file_name: (116, 199, 236),   // Sky
-            file_type: (116, 199, 236),   // Sky
-            dir_name: (137, 180, 250),    // Blue
-            dir_type: (137, 180, 250),    // Blue
-            file_size: (166, 227, 161),   // Green
-            dir_size: (108, 112, 134),    // Overlay0
-            modified: (249, 226, 175),    // Peach
-            permissions: (148, 226, 213), // Teal
-            row_number: (205, 214, 244),  // Text
+            border: (183, 189, 248),
+            header: (203, 166, 247),
+            file_name: (116, 199, 236),
+            file_type: (116, 199, 236),
+            dir_name: (137, 180, 250),
+            dir_type: (137, 180, 250),
+            file_size: (166, 227, 161),
+            dir_size: (108, 112, 134),
+            modified: (249, 226, 175),
+            permissions: (148, 226, 213),
+            row_number: (205, 214, 244),
         },
         Theme {
             name: "nord".to_string(),
             description: "Nord - Arctic, north-bluish color palette".to_string(),
-            border: (136, 192, 208),      // Nord8
-            header: (143, 188, 187),      // Nord7
-            file_name: (129, 161, 193),   // Nord9
-            file_type: (129, 161, 193),   // Nord9
-            dir_name: (94, 129, 172),     // Nord10
-            dir_type: (94, 129, 172),     // Nord10
-            file_size: (163, 190, 140),   // Nord14
-            dir_size: (76, 86, 106),      // Nord1
-            modified: (235, 203, 139),    // Nord13
-            permissions: (180, 142, 173), // Nord15
-            row_number: (216, 222, 233),  // Nord4
+            border: (136, 192, 208),
+            header: (143, 188, 187),
+            file_name: (129, 161, 193),
+            file_type: (129, 161, 193),
+            dir_name: (94, 129, 172),
+            dir_type: (94, 129, 172),
+            file_size: (163, 190, 140),
+            dir_size: (76, 86, 106),
+            modified: (235, 203, 139),
+            permissions: (180, 142, 173),
+            row_number: (216, 222, 233),
         },
         Theme {
             name: "dracula".to_string(),
             description: "Dracula - Dark theme with vibrant colors".to_string(),
-            border: (189, 147, 249),      // Purple
-            header: (255, 121, 198),      // Pink
-            file_name: (139, 233, 253),   // Cyan
-            file_type: (139, 233, 253),   // Cyan
-            dir_name: (189, 147, 249),    // Purple
-            dir_type: (189, 147, 249),    // Purple
-            file_size: (80, 250, 123),    // Green
-            dir_size: (98, 114, 164),     // Comment
-            modified: (255, 184, 108),    // Orange
-            permissions: (241, 250, 140), // Yellow
-            row_number: (248, 248, 242),  // Foreground
+            border: (189, 147, 249),
+            header: (255, 121, 198),
+            file_name: (139, 233, 253),
+            file_type: (139, 233, 253),
+            dir_name: (189, 147, 249),
+            dir_type: (189, 147, 249),
+            file_size: (80, 250, 123),
+            dir_size: (98, 114, 164),
+            modified: (255, 184, 108),
+            permissions: (241, 250, 140),
+            row_number: (248, 248, 242),
         },
         Theme {
             name: "monokai".to_string(),
             description: "Monokai - Classic vibrant dark theme".to_string(),
-            border: (174, 129, 255),     // Purple
-            header: (255, 97, 136),      // Pink
-            file_name: (120, 220, 232),  // Cyan
-            file_type: (120, 220, 232),  // Cyan
-            dir_name: (174, 129, 255),   // Purple
-            dir_type: (174, 129, 255),   // Purple
-            file_size: (158, 206, 106),  // Green
-            dir_size: (117, 113, 94),    // Comment
-            modified: (255, 216, 102),   // Yellow
-            permissions: (255, 97, 136), // Pink
-            row_number: (248, 248, 242), // White
+            border: (174, 129, 255),
+            header: (255, 97, 136),
+            file_name: (120, 220, 232),
+            file_type: (120, 220, 232),
+            dir_name: (174, 129, 255),
+            dir_type: (174, 129, 255),
+            file_size: (158, 206, 106),
+            dir_size: (117, 113, 94),
+            modified: (255, 216, 102),
+            permissions: (255, 97, 136),
+            row_number: (248, 248, 242),
         },
         Theme {
             name: "gruvbox".to_string(),
             description: "Gruvbox - Retro groove warm color scheme".to_string(),
-            border: (214, 153, 108),     // Orange
-            header: (251, 73, 52),       // Red
-            file_name: (131, 165, 152),  // Aqua
-            file_type: (131, 165, 152),  // Aqua
-            dir_name: (69, 133, 136),    // Blue
-            dir_type: (69, 133, 136),    // Blue
-            file_size: (152, 151, 26),   // Green
-            dir_size: (146, 131, 116),   // Gray
-            modified: (215, 153, 33),    // Yellow
-            permissions: (177, 98, 134), // Purple
-            row_number: (235, 219, 178), // Foreground
+            border: (214, 153, 108),
+            header: (251, 73, 52),
+            file_name: (131, 165, 152),
+            file_type: (131, 165, 152),
+            dir_name: (69, 133, 136),
+            dir_type: (69, 133, 136),
+            file_size: (152, 151, 26),
+            dir_size: (146, 131, 116),
+            modified: (215, 153, 33),
+            permissions: (177, 98, 134),
+            row_number: (235, 219, 178),
         },
         Theme {
             name: "solarized".to_string(),
             description: "Solarized - Precision colors for machines and people".to_string(),
-            border: (42, 161, 152),       // Cyan
-            header: (211, 54, 130),       // Magenta
-            file_name: (38, 139, 210),    // Blue
-            file_type: (38, 139, 210),    // Blue
-            dir_name: (42, 161, 152),     // Cyan
-            dir_type: (42, 161, 152),     // Cyan
-            file_size: (133, 153, 0),     // Green
-            dir_size: (101, 123, 131),    // Base00
-            modified: (181, 137, 0),      // Yellow
-            permissions: (108, 113, 196), // Violet
-            row_number: (131, 148, 150),  // Base0
+            border: (42, 161, 152),
+            header: (211, 54, 130),
+            file_name: (38, 139, 210),
+            file_type: (38, 139, 210),
+            dir_name: (42, 161, 152),
+            dir_type: (42, 161, 152),
+            file_size: (133, 153, 0),
+            dir_size: (101, 123, 131),
+            modified: (181, 137, 0),
+            permissions: (108, 113, 196),
+            row_number: (131, 148, 150),
         },
         Theme {
             name: "tokyo-night".to_string(),
             description: "Tokyo Night - A clean dark theme inspired by Tokyo's skyline".to_string(),
-            border: (125, 207, 255),      // Light Blue
-            header: (187, 154, 247),      // Purple
-            file_name: (125, 207, 255),   // Light Blue
-            file_type: (125, 207, 255),   // Light Blue
-            dir_name: (187, 154, 247),    // Purple
-            dir_type: (187, 154, 247),    // Purple
-            file_size: (158, 206, 106),   // Green
-            dir_size: (86, 95, 137),      // Comment
-            modified: (255, 158, 100),    // Orange
-            permissions: (255, 203, 107), // Yellow
-            row_number: (169, 177, 214),  // Foreground
+            border: (125, 207, 255),
+            header: (187, 154, 247),
+            file_name: (125, 207, 255),
+            file_type: (125, 207, 255),
+            dir_name: (187, 154, 247),
+            dir_type: (187, 154, 247),
+            file_size: (158, 206, 106),
+            dir_size: (86, 95, 137),
+            modified: (255, 158, 100),
+            permissions: (255, 203, 107),
+            row_number: (169, 177, 214),
         },
         Theme {
             name: "onedark".to_string(),
             description: "One Dark - Atom's iconic One Dark theme".to_string(),
-            border: (97, 175, 239),      // Blue
-            header: (198, 120, 221),     // Purple
-            file_name: (97, 175, 239),   // Blue
-            file_type: (97, 175, 239),   // Blue
-            dir_name: (198, 120, 221),   // Purple
-            dir_type: (198, 120, 221),   // Purple
-            file_size: (152, 195, 121),  // Green
-            dir_size: (92, 99, 112),     // Comment Gray
-            modified: (229, 192, 123),   // Yellow
-            permissions: (86, 182, 194), // Cyan
-            row_number: (171, 178, 191), // Light Gray
+            border: (97, 175, 239),
+            header: (198, 120, 221),
+            file_name: (97, 175, 239),
+            file_type: (97, 175, 239),
+            dir_name: (198, 120, 221),
+            dir_type: (198, 120, 221),
+            file_size: (152, 195, 121),
+            dir_size: (92, 99, 112),
+            modified: (229, 192, 123),
+            permissions: (86, 182, 194),
+            row_number: (171, 178, 191),
         },
         Theme {
             name: "material".to_string(),
             description: "Material - Google's Material Design color palette".to_string(),
-            border: (100, 181, 246),    // Blue 300
-            header: (156, 39, 176),     // Purple 600
-            file_name: (33, 150, 243),  // Blue 500
-            file_type: (33, 150, 243),  // Blue 500
-            dir_name: (103, 58, 183),   // Deep Purple 500
-            dir_type: (103, 58, 183),   // Deep Purple 500
-            file_size: (76, 175, 80),   // Green 500
-            dir_size: (117, 117, 117),  // Grey 600
-            modified: (255, 152, 0),    // Orange 500
-            permissions: (0, 188, 212), // Cyan 500
-            row_number: (97, 97, 97),   // Grey 700
+            border: (100, 181, 246),
+            header: (156, 39, 176),
+            file_name: (33, 150, 243),
+            file_type: (33, 150, 243),
+            dir_name: (103, 58, 183),
+            dir_type: (103, 58, 183),
+            file_size: (76, 175, 80),
+            dir_size: (117, 117, 117),
+            modified: (255, 152, 0),
+            permissions: (0, 188, 212),
+            row_number: (97, 97, 97),
         },
         Theme {
             name: "oceanic-next".to_string(),
             description: "Oceanic Next - Sophisticated oceanic color scheme".to_string(),
-            border: (101, 115, 126),     // Base Gray
-            header: (192, 197, 206),     // Light Gray
-            file_name: (102, 153, 204),  // Blue
-            file_type: (102, 153, 204),  // Blue
-            dir_name: (193, 132, 1),     // Orange
-            dir_type: (193, 132, 1),     // Orange
-            file_size: (153, 173, 106),  // Green
-            dir_size: (79, 91, 102),     // Dark Gray
-            modified: (250, 208, 122),   // Yellow
-            permissions: (95, 179, 151), // Teal
-            row_number: (160, 168, 180), // Medium Gray
+            border: (101, 115, 126),
+            header: (192, 197, 206),
+            file_name: (102, 153, 204),
+            file_type: (102, 153, 204),
+            dir_name: (193, 132, 1),
+            dir_type: (193, 132, 1),
+            file_size: (153, 173, 106),
+            dir_size: (79, 91, 102),
+            modified: (250, 208, 122),
+            permissions: (95, 179, 151),
+            row_number: (160, 168, 180),
         },
         Theme {
             name: "ayu-dark".to_string(),
             description: "Ayu Dark - Modern minimalist dark theme".to_string(),
-            border: (83, 89, 97),         // Border
-            header: (255, 173, 0),        // Orange
-            file_name: (89, 181, 230),    // Blue
-            file_type: (89, 181, 230),    // Blue
-            dir_name: (209, 154, 102),    // Yellow
-            dir_type: (209, 154, 102),    // Yellow
-            file_size: (172, 203, 115),   // Green
-            dir_size: (92, 103, 115),     // Comment
-            modified: (242, 151, 24),     // Orange Light
-            permissions: (128, 203, 196), // Cyan
-            row_number: (151, 165, 180),  // Foreground
+            border: (83, 89, 97),
+            header: (255, 173, 0),
+            file_name: (89, 181, 230),
+            file_type: (89, 181, 230),
+            dir_name: (209, 154, 102),
+            dir_type: (209, 154, 102),
+            file_size: (172, 203, 115),
+            dir_size: (92, 103, 115),
+            modified: (242, 151, 24),
+            permissions: (128, 203, 196),
+            row_number: (151, 165, 180),
         },
         Theme {
             name: "synthwave".to_string(),
             description: "Synthwave - Retro 80s cyberpunk aesthetics".to_string(),
-            border: (241, 250, 140),     // Neon Yellow
-            header: (255, 20, 147),      // Deep Pink
-            file_name: (0, 255, 255),    // Cyan
-            file_type: (0, 255, 255),    // Cyan
-            dir_name: (255, 20, 147),    // Deep Pink
-            dir_type: (255, 20, 147),    // Deep Pink
-            file_size: (50, 255, 50),    // Bright Green
-            dir_size: (139, 69, 19),     // Saddle Brown
-            modified: (255, 165, 0),     // Orange
-            permissions: (255, 0, 255),  // Magenta
-            row_number: (255, 255, 255), // White
+            border: (241, 250, 140),
+            header: (255, 20, 147),
+            file_name: (0, 255, 255),
+            file_type: (0, 255, 255),
+            dir_name: (255, 20, 147),
+            dir_type: (255, 20, 147),
+            file_size: (50, 255, 50),
+            dir_size: (139, 69, 19),
+            modified: (255, 165, 0),
+            permissions: (255, 0, 255),
+            row_number: (255, 255, 255),
         },
         Theme {
             name: "github-dark".to_string(),
             description: "GitHub Dark - GitHub's official dark theme".to_string(),
-            border: (48, 54, 61),         // Border
-            header: (255, 255, 255),      // White
-            file_name: (121, 192, 255),   // Blue
-            file_type: (121, 192, 255),   // Blue
-            dir_name: (255, 184, 108),    // Orange
-            dir_type: (255, 184, 108),    // Orange
-            file_size: (63, 185, 80),     // Green
-            dir_size: (139, 148, 158),    // Gray
-            modified: (255, 235, 59),     // Yellow
-            permissions: (164, 196, 255), // Light Blue
-            row_number: (201, 209, 217),  // Light Gray
+            border: (48, 54, 61),
+            header: (255, 255, 255),
+            file_name: (121, 192, 255),
+            file_type: (121, 192, 255),
+            dir_name: (255, 184, 108),
+            dir_type: (255, 184, 108),
+            file_size: (63, 185, 80),
+            dir_size: (139, 148, 158),
+            modified: (255, 235, 59),
+            permissions: (164, 196, 255),
+            row_number: (201, 209, 217),
         },
         Theme {
             name: "cobalt2".to_string(),
             description: "Cobalt2 - Electric blue theme for night owls".to_string(),
-            border: (0, 122, 204),       // Deep Blue
-            header: (255, 204, 102),     // Orange
-            file_name: (158, 206, 106),  // Green
-            file_type: (158, 206, 106),  // Green
-            dir_name: (255, 204, 102),   // Orange
-            dir_type: (255, 204, 102),   // Orange
-            file_size: (102, 217, 239),  // Cyan
-            dir_size: (128, 128, 128),   // Gray
-            modified: (255, 198, 109),   // Yellow
-            permissions: (255, 157, 77), // Light Orange
-            row_number: (193, 193, 193), // Light Gray
+            border: (0, 122, 204),
+            header: (255, 204, 102),
+            file_name: (158, 206, 106),
+            file_type: (158, 206, 106),
+            dir_name: (255, 204, 102),
+            dir_type: (255, 204, 102),
+            file_size: (102, 217, 239),
+            dir_size: (128, 128, 128),
+            modified: (255, 198, 109),
+            permissions: (255, 157, 77),
+            row_number: (193, 193, 193),
         },
         Theme {
             name: "palenight".to_string(),
             description: "Palenight - A darker Material Theme variant".to_string(),
-            border: (130, 170, 255),      // Blue
-            header: (199, 146, 234),      // Purple
-            file_name: (130, 170, 255),   // Blue
-            file_type: (130, 170, 255),   // Blue
-            dir_name: (255, 203, 107),    // Yellow
-            dir_type: (255, 203, 107),    // Yellow
-            file_size: (195, 232, 141),   // Green
-            dir_size: (103, 110, 149),    // Comment
-            modified: (255, 158, 100),    // Orange
-            permissions: (137, 221, 255), // Cyan
-            row_number: (171, 178, 191),  // Foreground
+            border: (130, 170, 255),
+            header: (199, 146, 234),
+            file_name: (130, 170, 255),
+            file_type: (130, 170, 255),
+            dir_name: (255, 203, 107),
+            dir_type: (255, 203, 107),
+            file_size: (195, 232, 141),
+            dir_size: (103, 110, 149),
+            modified: (255, 158, 100),
+            permissions: (137, 221, 255),
+            row_number: (171, 178, 191),
         },
         Theme {
             name: "night-owl".to_string(),
             description: "Night Owl - A theme for night owls by Sarah Drasner".to_string(),
-            border: (130, 170, 255),      // Blue
-            header: (199, 146, 234),      // Purple
-            file_name: (130, 170, 255),   // Blue
-            file_type: (130, 170, 255),   // Blue
-            dir_name: (195, 232, 141),    // Green
-            dir_type: (195, 232, 141),    // Green
-            file_size: (255, 203, 107),   // Yellow
-            dir_size: (103, 110, 149),    // Comment
-            modified: (255, 158, 100),    // Orange
-            permissions: (137, 221, 255), // Cyan
-            row_number: (214, 222, 235),  // Foreground
+            border: (130, 170, 255),
+            header: (199, 146, 234),
+            file_name: (130, 170, 255),
+            file_type: (130, 170, 255),
+            dir_name: (195, 232, 141),
+            dir_type: (195, 232, 141),
+            file_size: (255, 203, 107),
+            dir_size: (103, 110, 149),
+            modified: (255, 158, 100),
+            permissions: (137, 221, 255),
+            row_number: (214, 222, 235),
         },
         Theme {
             name: "horizon".to_string(),
             description: "Horizon - A beautifully warm dual theme".to_string(),
-            border: (250, 183, 149),      // Coral
-            header: (236, 196, 141),      // Apricot
-            file_name: (156, 207, 216),   // Turquoise
-            file_type: (156, 207, 216),   // Turquoise
-            dir_name: (250, 183, 149),    // Coral
-            dir_type: (250, 183, 149),    // Coral
-            file_size: (158, 180, 158),   // Sage
-            dir_size: (87, 82, 74),       // Comment
-            modified: (236, 196, 141),    // Apricot
-            permissions: (229, 152, 155), // Rose
-            row_number: (203, 204, 198),  // Foreground
+            border: (250, 183, 149),
+            header: (236, 196, 141),
+            file_name: (156, 207, 216),
+            file_type: (156, 207, 216),
+            dir_name: (250, 183, 149),
+            dir_type: (250, 183, 149),
+            file_size: (158, 180, 158),
+            dir_size: (87, 82, 74),
+            modified: (236, 196, 141),
+            permissions: (229, 152, 155),
+            row_number: (203, 204, 198),
         },
     ]
 }
@@ -382,106 +382,106 @@ fn save_config(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
 
 fn get_file_icon(path: &std::path::Path) -> &'static str {
     if path.is_dir() {
-        "\u{f07b}" // 
+        "\u{f07b}"
     } else if let Some(extension) = path.extension().and_then(|s| s.to_str()) {
         match extension.to_lowercase().as_str() {
-            // Programming languages
-            "rs" => "\u{e7a8}",                           //
-            "py" => "\u{e73c}",                           //
-            "js" | "mjs" => "\u{e74e}",                   //
-            "ts" => "\u{e628}",                           //
-            "jsx" => "\u{e7ba}",                          //
-            "tsx" => "\u{e7ba}",                          //
-            "go" => "\u{e626}",                           //
-            "java" => "\u{e204}",                         //
-            "c" => "\u{e61e}",                            //
-            "h" => "\u{e61e}",                            //
-            "cpp" | "cc" | "cxx" => "\u{e61d}",           //
-            "hpp" => "\u{e61d}",                          //
-            "cs" => "\u{f81a}",                           // 󰠚
-            "php" => "\u{e73d}",                          //
-            "rb" => "\u{e21e}",                           //
-            "swift" => "\u{e755}",                        //
-            "kt" => "\u{e634}",                           //
-            "dart" => "\u{e798}",                         //
-            "lua" => "\u{e620}",                          //
-            "r" => "\u{f25d}",                            //
-            "scala" => "\u{e737}",                        //
-            "clj" | "cljs" => "\u{e768}",                 //
-            "hs" => "\u{e777}",                           //
-            "ml" | "mli" => "\u{e7a7}",                   //
-            "elm" => "\u{e62c}",                          //
-            "ex" | "exs" => "\u{e62d}",                   //
-            "erl" => "\u{e7b1}",                          //
-            "vim" => "\u{e62b}",                          //
-            "sh" | "bash" | "zsh" | "fish" => "\u{f489}", //
-            "ps1" => "\u{f489}",                          //
-            // Web technologies
-            "html" | "htm" => "\u{e60e}",  //
-            "css" => "\u{e614}",           //
-            "scss" | "sass" => "\u{e603}", //
-            "less" => "\u{e758}",          //
-            "vue" => "\u{fd42}",           // ﵂
-            "svelte" => "\u{e697}",        //
-            "angular" => "\u{e753}",       //
-            // Configuration and data
-            "json" => "\u{e60b}",            //
-            "toml" => "\u{e615}",            //
-            "yaml" | "yml" => "\u{f481}",    //
-            "xml" => "\u{e619}",             //
-            "ini" => "\u{f17a}",             //
-            "conf" | "config" => "\u{e615}", //
-            "env" => "\u{f462}",             //
-            "dockerfile" => "\u{f308}",      //
-            "makefile" => "\u{f728}",        //
-            // Documentation
-            "md" | "markdown" => "\u{e609}", //
-            "txt" => "\u{f15c}",             //
-            "rst" => "\u{f15c}",             //
-            "tex" => "\u{e600}",             //
-            "rtf" => "\u{f15c}",             //
-            "pdf" => "\u{f1c1}",             //
-            // Images
-            "png" | "jpg" | "jpeg" => "\u{f1c5}", //
-            "gif" => "\u{f1c5}",                  //
-            "svg" => "\u{fc1f}",                  // ﰟ
-            "bmp" | "tiff" | "tif" => "\u{f1c5}", //
-            "webp" => "\u{f1c5}",                 //
-            "ico" => "\u{f1c5}",                  //
-            "psd" => "\u{e7b8}",                  //
-            "ai" => "\u{e7b4}",                   //
-            // Archives
-            "zip" | "7z" | "rar" => "\u{f410}",                 //
-            "tar" | "gz" | "gzip" | "bz2" | "xz" => "\u{f410}", //
-            // Executables and binaries
-            "exe" | "msi" => "\u{f17a}",         //
-            "app" | "dmg" => "\u{f179}",         //
-            "deb" | "rpm" | "pkg" => "\u{f187}", //
-            "appimage" => "\u{f179}",            //
-            // Documents
-            "doc" | "docx" => "\u{f1c2}",        //
-            "xls" | "xlsx" => "\u{f1c3}",        //
-            "ppt" | "pptx" => "\u{f1c4}",        //
-            "odt" | "ods" | "odp" => "\u{f1c2}", //
-            // Audio
-            "mp3" | "wav" | "flac" | "ogg" | "aac" | "m4a" | "wma" => "\u{f001}", //
-            // Video
-            "mp4" | "avi" | "mkv" | "mov" | "wmv" | "webm" | "flv" | "m4v" => "\u{f03d}", //
-            // Fonts
-            "ttf" | "otf" | "woff" | "woff2" | "eot" => "\u{f031}", //
-            // Database
-            "db" | "sqlite" | "sqlite3" => "\u{f1c0}", //
-            "sql" => "\u{f1c0}",                       //
-            // Lock and temp files
-            "lock" => "\u{f023}",           //
-            "tmp" | "temp" => "\u{f2ed}",   //
-            "bak" | "backup" => "\u{f56e}", //
-            "log" => "\u{f18e}",            //
-            // Other
+
+            "rs" => "\u{e7a8}",
+            "py" => "\u{e73c}",
+            "js" | "mjs" => "\u{e74e}",
+            "ts" => "\u{e628}",
+            "jsx" => "\u{e7ba}",
+            "tsx" => "\u{e7ba}",
+            "go" => "\u{e626}",
+            "java" => "\u{e204}",
+            "c" => "\u{e61e}",
+            "h" => "\u{e61e}",
+            "cpp" | "cc" | "cxx" => "\u{e61d}",
+            "hpp" => "\u{e61d}",
+            "cs" => "\u{f81a}",
+            "php" => "\u{e73d}",
+            "rb" => "\u{e21e}",
+            "swift" => "\u{e755}",
+            "kt" => "\u{e634}",
+            "dart" => "\u{e798}",
+            "lua" => "\u{e620}",
+            "r" => "\u{f25d}",
+            "scala" => "\u{e737}",
+            "clj" | "cljs" => "\u{e768}",
+            "hs" => "\u{e777}",
+            "ml" | "mli" => "\u{e7a7}",
+            "elm" => "\u{e62c}",
+            "ex" | "exs" => "\u{e62d}",
+            "erl" => "\u{e7b1}",
+            "vim" => "\u{e62b}",
+            "sh" | "bash" | "zsh" | "fish" => "\u{f489}",
+            "ps1" => "\u{f489}",
+
+            "html" | "htm" => "\u{e60e}",
+            "css" => "\u{e614}",
+            "scss" | "sass" => "\u{e603}",
+            "less" => "\u{e758}",
+            "vue" => "\u{fd42}",
+            "svelte" => "\u{e697}",
+            "angular" => "\u{e753}",
+
+            "json" => "\u{e60b}",
+            "toml" => "\u{e615}",
+            "yaml" | "yml" => "\u{f481}",
+            "xml" => "\u{e619}",
+            "ini" => "\u{f17a}",
+            "conf" | "config" => "\u{e615}",
+            "env" => "\u{f462}",
+            "dockerfile" => "\u{f308}",
+            "makefile" => "\u{f728}",
+
+            "md" | "markdown" => "\u{e609}",
+            "txt" => "\u{f15c}",
+            "rst" => "\u{f15c}",
+            "tex" => "\u{e600}",
+            "rtf" => "\u{f15c}",
+            "pdf" => "\u{f1c1}",
+
+            "png" | "jpg" | "jpeg" => "\u{f1c5}",
+            "gif" => "\u{f1c5}",
+            "svg" => "\u{fc1f}",
+            "bmp" | "tiff" | "tif" => "\u{f1c5}",
+            "webp" => "\u{f1c5}",
+            "ico" => "\u{f1c5}",
+            "psd" => "\u{e7b8}",
+            "ai" => "\u{e7b4}",
+
+            "zip" | "7z" | "rar" => "\u{f410}",
+            "tar" | "gz" | "gzip" | "bz2" | "xz" => "\u{f410}",
+
+            "exe" | "msi" => "\u{f17a}",
+            "app" | "dmg" => "\u{f179}",
+            "deb" | "rpm" | "pkg" => "\u{f187}",
+            "appimage" => "\u{f179}",
+
+            "doc" | "docx" => "\u{f1c2}",
+            "xls" | "xlsx" => "\u{f1c3}",
+            "ppt" | "pptx" => "\u{f1c4}",
+            "odt" | "ods" | "odp" => "\u{f1c2}",
+
+            "mp3" | "wav" | "flac" | "ogg" | "aac" | "m4a" | "wma" => "\u{f001}",
+
+            "mp4" | "avi" | "mkv" | "mov" | "wmv" | "webm" | "flv" | "m4v" => "\u{f03d}",
+
+            "ttf" | "otf" | "woff" | "woff2" | "eot" => "\u{f031}",
+
+            "db" | "sqlite" | "sqlite3" => "\u{f1c0}",
+            "sql" => "\u{f1c0}",
+
+            "lock" => "\u{f023}",
+            "tmp" | "temp" => "\u{f2ed}",
+            "bak" | "backup" => "\u{f56e}",
+            "log" => "\u{f18e}",
+
             _ => "\u{f15b}",
         }
     } else {
-        // Handle special filenames without extensions
+
         let filename = path
             .file_name()
             .and_then(|s| s.to_str())
@@ -489,17 +489,17 @@ fn get_file_icon(path: &std::path::Path) -> &'static str {
             .to_lowercase();
 
         match filename.as_str() {
-            "dockerfile" => "\u{f308}",   //
-            "makefile" => "\u{f728}",     //
-            "readme" => "\u{f7fb}",       //
-            "license" => "\u{f718}",      //
-            "changelog" => "\u{f7d9}",    //
-            "cargo.toml" => "\u{e7a8}",   //
-            "package.json" => "\u{e718}", //
-            ".gitignore" => "\u{f1d3}",   //
-            ".gitmodules" => "\u{f1d3}",  //
-            ".env" => "\u{f462}",         //
-            _ => "\u{f15b}",              //
+            "dockerfile" => "\u{f308}",
+            "makefile" => "\u{f728}",
+            "readme" => "\u{f7fb}",
+            "license" => "\u{f718}",
+            "changelog" => "\u{f7d9}",
+            "cargo.toml" => "\u{e7a8}",
+            "package.json" => "\u{e718}",
+            ".gitignore" => "\u{f1d3}",
+            ".gitmodules" => "\u{f1d3}",
+            ".env" => "\u{f462}",
+            _ => "\u{f15b}",
         }
     }
 }
@@ -509,7 +509,7 @@ fn get_theme_by_name(name: &str) -> Option<Theme> {
 }
 
 fn show_cpu_info(theme: &Theme) {
-    // Run lscpu command and parse the output
+
     let output = match Command::new("lscpu").output() {
         Ok(output) => {
             if output.status.success() {
@@ -525,7 +525,7 @@ fn show_cpu_info(theme: &Theme) {
         }
     };
 
-    // Parse lscpu output
+
     let mut cpu_info = Vec::new();
     for line in output.lines() {
         if line.trim().is_empty() {
@@ -536,7 +536,7 @@ fn show_cpu_info(theme: &Theme) {
         }
     }
 
-    // Create table with CPU information
+
     let mut table = Table::new();
     table
         .load_preset(UTF8_BORDERS_ONLY)
@@ -559,7 +559,7 @@ fn show_cpu_info(theme: &Theme) {
                 }),
         ]);
 
-    // Add CPU information to table with alternating colors
+
     for (i, (key, value)) in cpu_info.iter().enumerate() {
         let key_color = if i % 2 == 0 {
             Color::Rgb {
@@ -595,7 +595,7 @@ fn show_cpu_info(theme: &Theme) {
         ]);
     }
 
-    // Show the table with colored borders
+
     let table_output = table.to_string();
     let colored_output = colorize_borders(&table_output, theme);
     println!("{}", colored_output);
@@ -723,7 +723,7 @@ fn show_help(theme: &Theme) {
         ]);
     }
 
-    // Print title with theme colors
+
     let title_color = format!(
         "\x1b[38;2;{};{};{}m",
         theme.header.0, theme.header.1, theme.header.2
@@ -736,7 +736,7 @@ fn show_help(theme: &Theme) {
     );
     println!();
 
-    // Show the table with colored borders
+
     let table_output = table.to_string();
     let colored_output = colorize_borders(&table_output, theme);
     println!("{}", colored_output);
@@ -794,7 +794,7 @@ fn show_help(theme: &Theme) {
 fn main() {
     let cli = Cli::parse();
 
-    // Handle --help flag with custom display
+
     if cli.help {
         let config = load_config();
         let theme =
@@ -803,17 +803,17 @@ fn main() {
         return;
     }
 
-    // Handle --theme flag
+
     if let Some(theme_option) = &cli.theme {
         let themes = get_themes();
 
         let selected_theme_name = match theme_option {
             Some(theme_name) => {
-                // Theme name provided directly
+
                 theme_name.clone()
             }
             None => {
-                // No theme name provided, show interactive menu
+
                 let theme_options: Vec<String> = themes
                     .iter()
                     .map(|t| format!("{} - {}", t.name, t.description))
@@ -832,7 +832,7 @@ fn main() {
             }
         };
 
-        // Find and save the selected theme
+
         if let Some(theme) = themes.iter().find(|t| t.name == selected_theme_name) {
             let config = Config {
                 default_theme: theme.name.clone(),
@@ -859,7 +859,7 @@ fn main() {
         }
     }
 
-    // Handle --cpu flag
+
     if cli.cpu {
         let config = load_config();
         let theme =
@@ -868,7 +868,7 @@ fn main() {
         return;
     }
 
-    // Handle --workspace-file flag
+
     if let Some(file_path) = &cli.workspace_file {
         if let Err(e) = workspace::copy_file_to_clipboard(file_path) {
             eprintln!("Error copying file: {e}");
@@ -876,7 +876,7 @@ fn main() {
         return;
     }
 
-    // Handle --workspace-folder flag
+
     if let Some(folder_path) = &cli.workspace_folder {
         if let Err(e) = workspace::copy_folder_to_clipboard(folder_path) {
             eprintln!("Error copying folder: {e}");
@@ -884,7 +884,7 @@ fn main() {
         return;
     }
 
-    // Handle --workspace flag
+
     if cli.workspace {
         if let Err(e) = workspace::print_workspace_snapshot(cli.source_only, cli.max_size) {
             eprintln!("Error printing workspace: {e}");
@@ -892,7 +892,7 @@ fn main() {
         return;
     }
 
-    // Handle --tree flag
+
     if cli.tree {
         let config = load_config();
         let theme =
@@ -901,20 +901,20 @@ fn main() {
         return;
     }
 
-    // Default behavior: show directory listing with saved theme
+
     let config = load_config();
     let theme = get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone());
     show_directory_table(&theme);
 }
 
 fn show_directory_table(theme: &Theme) {
-    // Step 1: Get current directory
+
     let current_dir = env::current_dir().expect("Could not get current directory");
 
-    // Step 2: Read contents of current directory
+
     let entries = fs::read_dir(&current_dir).expect("Could not read current directory");
 
-    // Step 3: Setup pretty table with selected theme
+
     let mut table = Table::new();
     table
         .load_preset(UTF8_BORDERS_ONLY)
@@ -965,7 +965,7 @@ fn show_directory_table(theme: &Theme) {
                 }),
         ]);
 
-    // Step 4: Add each file/folder to the table
+
     let mut row_number = 1;
     for entry in entries.flatten() {
         let path = entry.path();
@@ -982,7 +982,7 @@ fn show_directory_table(theme: &Theme) {
 
         let file_type = if path.is_dir() { "Directory" } else { "File" };
 
-        // Create colored cells based on file type using theme colors
+
         let name_with_icon = format!("{} {}", get_file_icon(&path), name);
         let name_cell = if path.is_dir() {
             Cell::new(&name_with_icon).fg(Color::Rgb {
@@ -1012,7 +1012,7 @@ fn show_directory_table(theme: &Theme) {
             })
         };
 
-        // Format size with theme colors
+
         let size_cell = if path.is_dir() {
             Cell::new("-".to_string()).fg(Color::Rgb {
                 r: theme.dir_size.0,
@@ -1027,7 +1027,7 @@ fn show_directory_table(theme: &Theme) {
             })
         };
 
-        // Format modified time with theme colors
+
         let modified_cell = match metadata.modified() {
             Ok(time) => Cell::new(format_time(time)).fg(Color::Rgb {
                 r: theme.modified.0,
@@ -1041,13 +1041,13 @@ fn show_directory_table(theme: &Theme) {
             }),
         };
 
-        // Format permissions with theme color
+
         let permissions_cell = {
             #[cfg(unix)]
             let perm_text = format_permissions(metadata.permissions().mode());
             #[cfg(windows)]
             let perm_text = format_permissions(&metadata);
-            
+
             Cell::new(perm_text).fg(Color::Rgb {
                 r: theme.permissions.0,
                 g: theme.permissions.1,
@@ -1070,7 +1070,7 @@ fn show_directory_table(theme: &Theme) {
         row_number += 1;
     }
 
-    // Step 5: Show the table with colored borders
+
     let table_output = table.to_string();
     let colored_output = colorize_borders(&table_output, theme);
     println!("{colored_output}");
@@ -1141,15 +1141,15 @@ fn format_permissions(mode: u32) -> String {
 
 #[cfg(windows)]
 fn format_permissions(_metadata: &std::fs::Metadata) -> String {
-    // Windows doesn't have Unix-style permissions
-    // We could check read-only status, but for simplicity, return a placeholder
+
+
     "N/A".to_string()
 }
 
 fn show_tree(theme: &Theme, max_depth: Option<usize>, show_all: bool) {
     let current_dir = env::current_dir().expect("Could not get current directory");
 
-    // Print the root directory
+
     let root_name = current_dir
         .file_name()
         .unwrap_or_default()
@@ -1165,7 +1165,7 @@ fn show_tree(theme: &Theme, max_depth: Option<usize>, show_all: bool) {
     );
     println!("{}", colored_root);
 
-    // Build and display the tree
+
     display_tree_recursive(&current_dir, "", true, 0, max_depth, show_all, theme);
 }
 
@@ -1178,26 +1178,26 @@ fn display_tree_recursive(
     show_all: bool,
     theme: &Theme,
 ) {
-    // Check depth limit
+
     if let Some(max) = max_depth {
         if current_depth >= max {
             return;
         }
     }
 
-    // Read directory entries
+
     let entries = match fs::read_dir(dir) {
         Ok(entries) => entries,
         Err(_) => return,
     };
 
-    // Collect and sort entries
+
     let mut items: Vec<_> = entries.filter_map(|entry| entry.ok()).collect();
     items.sort_by(|a, b| {
         let a_is_dir = a.path().is_dir();
         let b_is_dir = b.path().is_dir();
 
-        // Directories first, then files
+
         match (a_is_dir, b_is_dir) {
             (true, false) => std::cmp::Ordering::Less,
             (false, true) => std::cmp::Ordering::Greater,
@@ -1205,7 +1205,7 @@ fn display_tree_recursive(
         }
     });
 
-    // Filter hidden files if not showing all
+
     if !show_all {
         items.retain(|item| !item.file_name().to_string_lossy().starts_with('.'));
     }
@@ -1218,14 +1218,14 @@ fn display_tree_recursive(
 
         let file_name = path.file_name().unwrap_or_default().to_string_lossy();
 
-        // Choose tree characters
+
         let (current_prefix, next_prefix) = if is_last_item {
             ("└── ", "    ")
         } else {
             ("├── ", "│   ")
         };
 
-        // Get file icon and colors
+
         let icon = get_file_icon(&path);
         let (name_color, type_indicator) = if path.is_dir() {
             (
@@ -1245,14 +1245,14 @@ fn display_tree_recursive(
             )
         };
 
-        // Color the tree structure
+
         let tree_color = format!(
             "\x1b[38;2;{};{};{}m",
             theme.border.0, theme.border.1, theme.border.2
         );
         let reset_color = "\x1b[0m";
 
-        // Print the current item
+
         println!(
             "{}{}{}{}{}{}{}{}{}",
             prefix,
@@ -1278,7 +1278,7 @@ fn display_tree_recursive(
             }
         );
 
-        // Recursively display subdirectories
+
         if path.is_dir() {
             let new_prefix = format!("{}{}", prefix, next_prefix);
             display_tree_recursive(
