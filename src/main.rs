@@ -1,4 +1,6 @@
 mod workspace;
+use chrono::Duration;
+use chrono::Duration;
 use clap::{Parser, Subcommand};
 use comfy_table::{
     Attribute, Cell, Color, ContentArrangement, Table, modifiers::UTF8_ROUND_CORNERS,
@@ -9,10 +11,8 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
-use std::path::PathBuf;
-use std::time::SystemTime;
 use std::process::Command;
-use chrono::Duration;
+use std::time::SystemTimemTime;
 
 #[derive(Parser)]
 #[command(name = "lsr")]
@@ -179,47 +179,47 @@ fn get_themes() -> Vec<Theme> {
         Theme {
             name: "onedark".to_string(),
             description: "One Dark - Atom's iconic One Dark theme".to_string(),
-            border: (97, 175, 239),       // Blue
-            header: (198, 120, 221),      // Purple
-            file_name: (97, 175, 239),    // Blue
-            file_type: (97, 175, 239),    // Blue
-            dir_name: (198, 120, 221),    // Purple
-            dir_type: (198, 120, 221),    // Purple
-            file_size: (152, 195, 121),   // Green
-            dir_size: (92, 99, 112),      // Comment Gray
-            modified: (229, 192, 123),    // Yellow
-            permissions: (86, 182, 194),  // Cyan
-            row_number: (171, 178, 191),  // Light Gray
+            border: (97, 175, 239),     // Blue
+            header: (198, 120, 221),     / Purple
+            file_name: (97, 175, 239),  // Blue
+            file_type: (97, 175, 239),   / Blue
+            dir_name: (198, 120, 221),  // Purple
+            dir_type: (198, 120, 221),  // Purple
+            file_size: (152, 195, 121),  / Green
+            dir_size: (92, 99, 112),    // Comment Gray
+            modified: (229, 192, 123),   / Yellow
+            permissions: (86, 182, 194),// Cyan
+            row_number: (171, 178, 191),// Light Gray
         },
         Theme {
             name: "material".to_string(),
             description: "Material - Google's Material Design color palette".to_string(),
-            border: (100, 181, 246),      // Blue 300
-            header: (156, 39, 176),       // Purple 600
-            file_name: (33, 150, 243),    // Blue 500
-            file_type: (33, 150, 243),    // Blue 500
-            dir_name: (103, 58, 183),     // Deep Purple 500
-            dir_type: (103, 58, 183),     // Deep Purple 500
-            file_size: (76, 175, 80),     // Green 500
-            dir_size: (117, 117, 117),    // Grey 600
-            modified: (255, 152, 0),      // Orange 500
-            permissions: (0, 188, 212),   // Cyan 500
-            row_number: (97, 97, 97),     // Grey 700
+            border: (100, 181, 246),     Blue 300
+            header: (156, 39, 176),   // Purple 600
+            file_name: (33, 150, 243),// Blue 500
+            file_type: (33, 150, 243),// Blue 500
+            dir_name: (103, 58, 183), // Deep Purple 500
+            dir_type: (103, 58, 183),    Deep Purple 500
+            file_size: (76, 175, 80),    Green 500
+            dir_size: (117, 117, 117),   Grey 600
+            modified: (255, 152, 0),     Orange 500
+            permissions: (0, 188, 212),/ Cyan 500
+            row_number: (97, 97, 97), // Grey 700
         },
         Theme {
             name: "oceanic-next".to_string(),
             description: "Oceanic Next - Sophisticated oceanic color scheme".to_string(),
-            border: (101, 115, 126),      // Base Gray
-            header: (192, 197, 206),      // Light Gray
-            file_name: (102, 153, 204),   // Blue
-            file_type: (102, 153, 204),   // Blue
-            dir_name: (193, 132, 1),      // Orange
-            dir_type: (193, 132, 1),      // Orange
-            file_size: (153, 173, 106),   // Green
-            dir_size: (79, 91, 102),      // Dark Gray
-            modified: (250, 208, 122),    // Yellow
-            permissions: (95, 179, 151),  // Teal
-            row_number: (160, 168, 180),  // Medium Gray
+            border: (101, 115, 126),     / Base Gray
+            header: (192, 197, 206),    // Light Gray
+            file_name: (102, 153, 204),  / Blue
+            file_type: (102, 153, 204), // Blue
+            dir_name: (193, 132, 1),     / Orange
+            dir_type: (193, 132, 1),    // Orange
+            file_size: (153, 173, 106),  / Green
+            dir_size: (79, 91, 102),    // Dark Gray
+            modified: (250, 208, 122),  // Yellow
+            permissions: (95, 179, 151),// Teal
+            row_number: (160, 168, 180),// Medium Gray
         },
         Theme {
             name: "ayu-dark".to_string(),
@@ -239,17 +239,17 @@ fn get_themes() -> Vec<Theme> {
         Theme {
             name: "synthwave".to_string(),
             description: "Synthwave - Retro 80s cyberpunk aesthetics".to_string(),
-            border: (241, 250, 140),      // Neon Yellow
-            header: (255, 20, 147),       // Deep Pink
-            file_name: (0, 255, 255),     // Cyan
-            file_type: (0, 255, 255),     // Cyan
-            dir_name: (255, 20, 147),     // Deep Pink
-            dir_type: (255, 20, 147),     // Deep Pink
-            file_size: (50, 255, 50),     // Bright Green
-            dir_size: (139, 69, 19),      // Saddle Brown
-            modified: (255, 165, 0),      // Orange
-            permissions: (255, 0, 255),   // Magenta
-            row_number: (255, 255, 255),  // White
+            border: (241, 250, 140),     / Neon Yellow
+            header: (255, 20, 147),     // Deep Pink
+            file_name: (0, 255, 255),    / Cyan
+            file_type: (0, 255, 255),   // Cyan
+            dir_name: (255, 20, 147),    / Deep Pink
+            dir_type: (255, 20, 147),   // Deep Pink
+            file_size: (50, 255, 50),   // Bright Green
+            dir_size: (139, 69, 19),     / Saddle Brown
+            modified: (255, 165, 0),    // Orange
+            permissions: (255, 0, 255),  / Magenta
+            row_number: (255, 255, 255),// White
         },
         Theme {
             name: "github-dark".to_string(),
@@ -269,17 +269,17 @@ fn get_themes() -> Vec<Theme> {
         Theme {
             name: "cobalt2".to_string(),
             description: "Cobalt2 - Electric blue theme for night owls".to_string(),
-            border: (0, 122, 204),        // Deep Blue
-            header: (255, 204, 102),      // Orange
-            file_name: (158, 206, 106),   // Green
-            file_type: (158, 206, 106),   // Green
-            dir_name: (255, 204, 102),    // Orange
-            dir_type: (255, 204, 102),    // Orange
-            file_size: (102, 217, 239),   // Cyan
-            dir_size: (128, 128, 128),    // Gray
-            modified: (255, 198, 109),    // Yellow
-            permissions: (255, 157, 77),  // Light Orange
-            row_number: (193, 193, 193),  // Light Gray
+            border: (0, 122, 204),       / Deep Blue
+            header: (255, 204, 102),    // Orange
+            file_name: (158, 206, 106),  / Green
+            file_type: (158, 206, 106), // Green
+            dir_name: (255, 204, 102),  // Orange
+            dir_type: (255, 204, 102),   / Orange
+            file_size: (102, 217, 239), // Cyan
+            dir_size: (128, 128, 128),   / Gray
+            modified: (255, 198, 109),  // Yellow
+            permissions: (255, 157, 77),// Light Orange
+            row_number: (193, 193, 193),// Light Gray
         },
         Theme {
             name: "palenight".to_string(),
@@ -366,136 +366,125 @@ fn save_config(config: &Config) -> Result<(), Box<dyn std::error::Error>> {
 
 fn get_file_icon(path: &std::path::Path) -> &'static str {
     if path.is_dir() {
-        "\u{f07b}"  // 
+        "\u{f07b}"// 
     } else if let Some(extension) = path.extension().and_then(|s| s.to_str()) {
         match extension.to_lowercase().as_str() {
             // Programming languages
-            "rs" => "\u{e7a8}",        // 
-            "py" => "\u{e73c}",        // 
-            "js" | "mjs" => "\u{e74e}", // 
-            "ts" => "\u{e628}",        // 
-            "jsx" => "\u{e7ba}",       // 
-            "tsx" => "\u{e7ba}",       // 
-            "go" => "\u{e626}",        // 
-            "java" => "\u{e204}",      // 
-            "c" => "\u{e61e}",         // 
-            "h" => "\u{e61e}",         // 
-            "cpp" | "cc" | "cxx" => "\u{e61d}", // 
-            "hpp" => "\u{e61d}",       // 
-            "cs" => "\u{f81a}",        // 󰠚
-            "php" => "\u{e73d}",       // 
-            "rb" => "\u{e21e}",        // 
-            "swift" => "\u{e755}",     // 
-            "kt" => "\u{e634}",        // 
-            "dart" => "\u{e798}",      // 
-            "lua" => "\u{e620}",       // 
-            "r" => "\u{f25d}",         // 
-            "scala" => "\u{e737}",     // 
-            "clj" | "cljs" => "\u{e768}", // 
-            "hs" => "\u{e777}",        // 
-            "ml" | "mli" => "\u{e7a7}", // 
-            "elm" => "\u{e62c}",       // 
-            "ex" | "exs" => "\u{e62d}", // 
-            "erl" => "\u{e7b1}",       // 
-            "vim" => "\u{e62b}",       // 
-            "sh" | "bash" | "zsh" | "fish" => "\u{f489}", // 
-            "ps1" => "\u{f489}",       // 
-            
+            "rs" => "\u{e7a8}",                                             //
+            "py" => "\u{e73c}",                                             //
+            "js" | "mjs" => "\u{e74e}",                                    //
+            "ts" => "\u{e628}",                                             //
+            "jsx" => "\u{e7ba}",                                            //
+            "tsx" => "\u{e7ba}",                                            //
+            "go" => "\u{e626}",                                             //
+            "java" => "\u{e204}",                                           //
+            "c" => "\u{e61e}",                                              //
+            "h" => "\u{e61e}",                                              //
+            "cpp" | "cc" | "cxx" => "\u{e61d}",                    //
+            "hpp" => "\u{e61d}",                                            //
+            "cs" => "\u{f81a}",                                              // 󰠚
+            "php" => "\u{e73d}",                                            //
+            "rb" => "\u{e21e}",                                             //
+            "swift" => "\u{e755}",                                          //
+            "kt" => "\u{e634}",                                             //
+            "dart" => "\u{e798}",                                           //
+            "lua" => "\u{e620}",                                            //
+            "r" => "\u{f25d}",                                              //
+            "scala" => "\u{e737}",                                          //
+            "clj" | "cljs" => "\u{e768}",                                //
+            "hs" => "\u{e777}",                                             //
+            "ml" | "mli" => "\u{e7a7}",                                    //
+            "elm" => "\u{e62c}",                                            //
+            "ex" | "exs" => "\u{e62d}",                                    //
+            "erl" => "\u{e7b1}",                                            //
+            "vim" => "\u{e62b}",                                            //
+            "sh" | "bash" | "zsh" | "fish" => "\u{f489}", //
+            "ps1" => "\u{f489}",              //
             // Web technologies
-            "html" | "htm" => "\u{e60e}", // 
-            "css" => "\u{e614}",       // 
-            "scss" | "sass" => "\u{e603}", // 
-            "less" => "\u{e758}",      // 
-            "vue" => "\u{fd42}",       // ﵂
-            "svelte" => "\u{e697}",    // 
-            "angular" => "\u{e753}",   // 
-            
+            "html" | "htm" => "\u{e60e}",   /
+            "css" => "\u{e614}",              //
+            "scss" | "sass" => "\u{e603}", //
+            "less" => "\u{e758}",             //
+            "vue" => "\u{fd42}",               // ﵂
+            "svelte" => "\u{e697}",           //
+            "angular" => "\u{e753}",  //
             // Configuration and data
-            "json" => "\u{e60b}",      // 
-            "toml" => "\u{e615}",      // 
-            "yaml" | "yml" => "\u{f481}", // 
-            "xml" => "\u{e619}",       // 
-            "ini" => "\u{f17a}",       // 
-            "conf" | "config" => "\u{e615}", // 
-            "env" => "\u{f462}",       // 
-            "dockerfile" => "\u{f308}", // 
-            "makefile" => "\u{f728}",  // 
-            
+            "json" => "\u{e60b}",                 //
+            "toml" => "\u{e615}",                 //
+            "yaml" | "yml" => "\u{f481}",      //
+            "xml" => "\u{e619}",                  //
+            "ini" => "\u{f17a}",                  //
+            "conf" | "config" => "\u{e615}", //
+            "env" => "\u{f462}",                  //
+            "dockerfile" => "\u{f308}",          //
+            "makefile" => "\u{f728}",/
             // Documentation
-            "md" | "markdown" => "\u{e609}", // 
-            "txt" => "\u{f15c}",       // 
-            "rst" => "\u{f15c}",       // 
-            "tex" => "\u{e600}",       // 
-            "rtf" => "\u{f15c}",       // 
-            "pdf" => "\u{f1c1}",       // 
-            
+            "md" | "markdown" => "\u{e609}", //
+            "txt" => "\u{f15c}",                  //
+            "rst" => "\u{f15c}",                  //
+            "tex" => "\u{e600}",                  //
+            "rtf" => "\u{f15c}",                  //
+            "pdf" => "\u{f1c1}", //
             // Images
-            "png" | "jpg" | "jpeg" => "\u{f1c5}", // 
-            "gif" => "\u{f1c5}",       // 
-            "svg" => "\u{fc1f}",       // ﰟ
-            "bmp" | "tiff" | "tif" => "\u{f1c5}", // 
-            "webp" => "\u{f1c5}",      // 
-            "ico" => "\u{f1c5}",       // 
-            "psd" => "\u{e7b8}",       // 
-            "ai" => "\u{e7b4}",        // 
-            
+            "png" | "jpg" | "jpeg" => "\u{f1c5}", //
+            "gif" => "\u{f1c5}",                            //
+            "svg" => "\u{fc1f}",                             // ﰟ
+            "bmp" | "tiff" | "tif" => "\u{f1c5}", //
+            "webp" => "\u{f1c5}",                           //
+            "ico" => "\u{f1c5}",                            //
+            "psd" => "\u{e7b8}",                            //
+            "ai" => "\u{e7b4}",         //
             // Archives
-            "zip" | "7z" | "rar" => "\u{f410}", // 
-            "tar" | "gz" | "gzip" | "bz2" | "xz" => "\u{f410}", // 
-            
+            "zip" | "7z" | "rar" => "\u{f410}",                                //
+            "tar" | "gz" | "gzip" | "bz2" | "xz" => "\u{f410}", //
             // Executables and binaries
-            "exe" | "msi" => "\u{f17a}", // 
-            "app" | "dmg" => "\u{f179}", // 
-            "deb" | "rpm" | "pkg" => "\u{f187}", // 
-            "appimage" => "\u{f179}",  // 
-            
+            "exe" | "msi" => "\u{f17a}",                //
+            "app" | "dmg" => "\u{f179}",                //
+            "deb" | "rpm" | "pkg" => "\u{f187}", //
+            "appimage" => "\u{f179}", //
             // Documents
-            "doc" | "docx" => "\u{f1c2}", // 
-            "xls" | "xlsx" => "\u{f1c3}", // 
-            "ppt" | "pptx" => "\u{f1c4}", // 
-            "odt" | "ods" | "odp" => "\u{f1c2}", // 
-            
+            "doc" | "docx" => "\u{f1c2}",              //
+            "xls" | "xlsx" => "\u{f1c3}",              //
+            "ppt" | "pptx" => "\u{f1c4}",              //
+            "odt" | "ods" | "odp" => "\u{f1c2}", //
             // Audio
-            "mp3" | "wav" | "flac" | "ogg" | "aac" | "m4a" | "wma" => "\u{f001}", // 
-            
+            "mp3" | "wav" | "flac" | "ogg" | "aac" | "m4a" | "wma" => "\u{f001}", //
             // Video
-            "mp4" | "avi" | "mkv" | "mov" | "wmv" | "webm" | "flv" | "m4v" => "\u{f03d}", // 
-            
+            "mp4" | "avi" | "mkv" | "mov" | "wmv" | "webm" | "flv" | "m4v" => "\u{f03d}", //
             // Fonts
-            "ttf" | "otf" | "woff" | "woff2" | "eot" => "\u{f031}", // 
-            
+            "ttf" | "otf" | "woff" | "woff2" | "eot" => "\u{f031}", //
             // Database
-            "db" | "sqlite" | "sqlite3" => "\u{f1c0}", // 
-            "sql" => "\u{f1c0}",       // 
-            
+            "db" | "sqlite" | "sqlite3" => "\u{f1c0}", //
+            "sql" => "\u{f1c0}",           //
             // Lock and temp files
-            "lock" => "\u{f023}",      // 
-            "tmp" | "temp" => "\u{f2ed}", // 
-            "bak" | "backup" => "\u{f56e}", // 
-            "log" => "\u{f18e}",       // 
-            
+            "lock" => "\u{f023}",               //
+            "tmp" | "temp" => "\u{f2ed}",     /
+            "bak" | "backup" => "\u{f56e}", //
+            "log" => "\u{f18e}",   //
             // Other
-            _ => "\u{f15b}",           // 
+            _ => "\u{f15b}",
         }
     } else {
         // Handle special filenames without extensions
-        let filename = path.file_name()
+        let filename = path
+            
+            .file_name()
             .and_then(|s| s.to_str())
             .unwrap_or("")
-            .to_lowercase();
-        
-        match filename.as_str() {
-            "dockerfile" => "\u{f308}", // 
-            "makefile" => "\u{f728}",   // 
-            "readme" => "\u{f7fb}",     // 
-            "license" => "\u{f718}",    // 
-            "changelog" => "\u{f7d9}",  // 
-            "cargo.toml" => "\u{e7a8}", // 
-            "package.json" => "\u{e718}", // 
-            ".gitignore" => "\u{f1d3}", // 
-            ".gitmodules" => "\u{f1d3}", // 
-            ".env" => "\u{f462}",       // 
-            _ => "\u{f15b}",            // 
+    .to_lowercase();
+
+        match filename.as_str() {  
+            "dockerfile" => "\u{f308}",     /
+            "makefile" => "\u{f728}",       /
+            "readme" => "\u{f7fb}",         /
+            "license" => "\u{f718}",        /
+            "changelog" => "\u{f7d9}",      /
+            "cargo.toml" => "\u{e7a8}",   //
+            "package.json" => "\u{e718}  ", /
+            ".gitignore" => "\u{f1d3}",    /
+            ".gitmodules" => "\u{f1d3}",    /
+            ".env" => "\u{f462}",           /
+            _ => "\u{f15b}",              //
         }
     }
 }
@@ -539,7 +528,7 @@ fn show_cpu_info(theme: &Theme) {
         .apply_modifier(UTF8_ROUND_CORNERS)
         .set_content_arrangement(ContentArrangement::Dynamic)
         .set_header(vec![
-            Cell::new("🖥️  CPU Information")
+            Cell::new("CPU Information")
                 .add_attribute(Attribute::Bold)
                 .fg(Color::Rgb {
                     r: theme.header.0,
@@ -602,8 +591,10 @@ fn main() {
 
     // Handle --cpu flag
     if cli.cpu {
-        let config = load_config();
-        let theme = get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone());
+        let config 
+           = load_config();
+        let theme =
+            get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone());
         show_cpu_info(&theme);
         return;
     }
