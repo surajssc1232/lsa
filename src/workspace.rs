@@ -87,7 +87,7 @@ fn copy_to_clipboard(content: &str) -> io::Result<()> {
         
         match child.wait() {
             Ok(status) if status.success() => {
-                println!("\u{f00c} Workspace content copied to clipboard!");
+                println!("\u{f00c} Content copied to clipboard!");
                 return Ok(());
             }
             Ok(_) => eprintln!("wl-copy failed"),
@@ -110,7 +110,7 @@ fn copy_to_clipboard(content: &str) -> io::Result<()> {
         
         match child.wait() {
             Ok(status) if status.success() => {
-                println!("\u{f00c} Workspace content copied to clipboard!");
+                println!("\u{f00c} Content copied to clipboard!");
                 return Ok(());
             }
             Ok(_) => eprintln!("xclip failed"),
@@ -123,7 +123,7 @@ fn copy_to_clipboard(content: &str) -> io::Result<()> {
         Ok(mut ctx) => {
             match ctx.set_contents(content.to_string()) {
                 Ok(_) => {
-                    println!("\u{f00c} Workspace content copied to clipboard!");
+                    println!("\u{f00c} Content copied to clipboard!");
                     Ok(())
                 }
                 Err(e) => {
@@ -137,6 +137,97 @@ fn copy_to_clipboard(content: &str) -> io::Result<()> {
             Err(io::Error::new(io::ErrorKind::Other, e))
         }
     }
+}
+
+pub fn copy_file_to_clipboard(file_path: &str) -> io::Result<()> {
+    let path = Path::new(file_path);
+    
+    if !path.exists() {
+        eprintln!("\u{f00d} File not found: {}", file_path);
+        return Err(io::Error::new(io::ErrorKind::NotFound, "File not found"));
+    }
+
+    if !path.is_file() {
+        eprintln!("\u{f00d} Path is not a file: {}", file_path);
+        return Err(io::Error::new(io::ErrorKind::InvalidInput, "Path is not a file"));
+    }
+
+    let content = fs::read_to_string(path)
+        .unwrap_or_else(|_| "<binary or unreadable>".into());
+
+    let mut workspace_content = String::new();
+    workspace_content.push_str(&format!("\u{f07c} File: {}\n\n", file_path));
+    workspace_content.push_str(&format!("{}\n---------------------\n", file_path));
+    workspace_content.push_str(&format!("{}\n\n", content));
+
+    let size_kb = workspace_content.len() as f64 / 1024.0;
+    println!("File size: {:.1}KB ({} characters)", size_kb, workspace_content.len());
+
+    copy_to_clipboard(&workspace_content)
+}
+
+pub fn copy_folder_to_clipboard(folder_path: &str) -> io::Result<()> {
+    let folder = Path::new(folder_path);
+    
+    if !folder.exists() {
+        eprintln!("\u{f00d} Folder not found: {}", folder_path);
+        return Err(io::Error::new(io::ErrorKind::NotFound, "Folder not found"));
+    }
+
+    if !folder.is_dir() {
+        eprintln!("\u{f00d} Path is not a folder: {}", folder_path);
+        return Err(io::Error::new(io::ErrorKind::InvalidInput, "Path is not a folder"));
+    }
+
+    let mut workspace_content = String::new();
+    workspace_content.push_str(&format!("\u{f07c} Folder: {}\n\n", folder_path));
+
+    let walker = WalkBuilder::new(folder)
+        .hidden(false)
+        .git_ignore(true)
+        .git_exclude(true)
+        .git_global(true)
+        .build();
+
+    let mut files = Vec::new();
+    for result in walker {
+        match result {
+            Ok(entry) => {
+                let path = entry.path();
+                
+                // Skip .git directory entirely
+                if path.components().any(|c| c.as_os_str() == ".git") {
+                    continue;
+                }
+                
+                // Only include files, not directories
+                if path.is_file() {
+                    files.push(path.to_path_buf());
+                }
+            }
+            Err(err) => {
+                eprintln!("Warning: Error walking directory: {}", err);
+            }
+        }
+    }
+
+    for file_path in files {
+        let content = fs::read_to_string(&file_path)
+            .unwrap_or_else(|_| "<binary or unreadable>".into());
+
+        let relative_path = file_path.strip_prefix(folder).unwrap_or(&file_path);
+        workspace_content.push_str(&format!("{}\n---------------------\n", relative_path.display()));
+        workspace_content.push_str(&format!("{}\n\n", content));
+    }
+
+    let size_kb = workspace_content.len() as f64 / 1024.0;
+    println!("Folder size: {:.1}KB ({} characters)", size_kb, workspace_content.len());
+    
+    if size_kb > 32.0 {
+        println!("⚠️  Content is large (>32KB). Some LLMs may truncate input.");
+    }
+
+    copy_to_clipboard(&workspace_content)
 }
 
 pub fn print_workspace_snapshot(source_only: bool, max_size_kb: Option<usize>) -> io::Result<()> {

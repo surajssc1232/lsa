@@ -28,6 +28,12 @@ struct Cli {
     /// Show workspace snapshot
     #[arg(long)]
     workspace: bool,
+    /// Copy specific file to clipboard
+    #[arg(long, value_name = "FILE_PATH")]
+    workspace_file: Option<String>,
+    /// Copy specific folder to clipboard
+    #[arg(long, value_name = "FOLDER_PATH")]
+    workspace_folder: Option<String>,
     /// Only include source files in workspace (src/, *.rs, *.js, *.py, etc.)
     #[arg(long, requires = "workspace")]
     source_only: bool,
@@ -633,6 +639,16 @@ fn show_help(theme: &Theme) {
             "Show workspace snapshot (copy to clipboard)",
         ),
         (
+            "--workspace-file <PATH>",
+            "",
+            "Copy specific file to clipboard",
+        ),
+        (
+            "--workspace-folder <PATH>",
+            "",
+            "Copy specific folder to clipboard",
+        ),
+        (
             "--source-only",
             "",
             "Only include source files in workspace",
@@ -743,6 +759,14 @@ fn show_help(theme: &Theme) {
         example_color, reset_color
     );
     println!(
+        "  {}lsr --workspace-file src/main.rs{} # Copy specific file to clipboard",
+        example_color, reset_color
+    );
+    println!(
+        "  {}lsr --workspace-folder src/{}      # Copy specific folder to clipboard",
+        example_color, reset_color
+    );
+    println!(
         "  {}lsr --workspace --source-only{}    # Copy only source files",
         example_color, reset_color
     );
@@ -834,6 +858,22 @@ fn main() {
         let theme =
             get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone());
         show_cpu_info(&theme);
+        return;
+    }
+
+    // Handle --workspace-file flag
+    if let Some(file_path) = &cli.workspace_file {
+        if let Err(e) = workspace::copy_file_to_clipboard(file_path) {
+            eprintln!("Error copying file: {e}");
+        }
+        return;
+    }
+
+    // Handle --workspace-folder flag
+    if let Some(folder_path) = &cli.workspace_folder {
+        if let Err(e) = workspace::copy_folder_to_clipboard(folder_path) {
+            eprintln!("Error copying folder: {e}");
+        }
         return;
     }
 
