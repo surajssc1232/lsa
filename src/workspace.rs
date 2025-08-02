@@ -71,54 +71,58 @@ fn is_source_file(path: &Path) -> bool {
 }
 
 fn copy_to_clipboard(content: &str) -> io::Result<()> {
-    // Try wl-copy first (Wayland)
-    if let Ok(mut child) = Command::new("wl-copy")
-        .stdin(Stdio::piped())
-        .spawn()
+    // Try platform-specific clipboard tools first
+    #[cfg(unix)]
     {
-        if let Some(mut stdin) = child.stdin.take() {
-            use std::io::Write;
-            match stdin.write_all(content.as_bytes()) {
-                Ok(_) => (),
-                Err(e) => eprintln!("Failed to write to wl-copy: {}", e),
+        // Try wl-copy first (Wayland)
+        if let Ok(mut child) = Command::new("wl-copy")
+            .stdin(Stdio::piped())
+            .spawn()
+        {
+            if let Some(mut stdin) = child.stdin.take() {
+                use std::io::Write;
+                match stdin.write_all(content.as_bytes()) {
+                    Ok(_) => (),
+                    Err(e) => eprintln!("Failed to write to wl-copy: {}", e),
+                }
+                drop(stdin); // Close stdin to signal EOF
             }
-            drop(stdin); // Close stdin to signal EOF
+            
+            match child.wait() {
+                Ok(status) if status.success() => {
+                    println!("\u{f00c} Content copied to clipboard!");
+                    return Ok(());
+                }
+                Ok(_) => eprintln!("wl-copy failed"),
+                Err(e) => eprintln!("Failed to wait for wl-copy: {}", e),
+            }
         }
-        
-        match child.wait() {
-            Ok(status) if status.success() => {
-                println!("\u{f00c} Content copied to clipboard!");
-                return Ok(());
+
+        // Try xclip as fallback (X11)
+        if let Ok(mut child) = Command::new("xclip")
+            .args(["-selection", "clipboard"])
+            .stdin(Stdio::piped())
+            .spawn()
+        {
+            if let Some(mut stdin) = child.stdin.take() {
+                use std::io::Write;
+                if let Err(e) = stdin.write_all(content.as_bytes()) {
+                    eprintln!("Failed to write to xclip: {}", e);
+                }
             }
-            Ok(_) => eprintln!("wl-copy failed"),
-            Err(e) => eprintln!("Failed to wait for wl-copy: {}", e),
+            
+            match child.wait() {
+                Ok(status) if status.success() => {
+                    println!("\u{f00c} Content copied to clipboard!");
+                    return Ok(());
+                }
+                Ok(_) => eprintln!("xclip failed"),
+                Err(e) => eprintln!("Failed to wait for xclip: {}", e),
+            }
         }
     }
 
-    // Try xclip as fallback (X11)
-    if let Ok(mut child) = Command::new("xclip")
-        .args(["-selection", "clipboard"])
-        .stdin(Stdio::piped())
-        .spawn()
-    {
-        if let Some(mut stdin) = child.stdin.take() {
-            use std::io::Write;
-            if let Err(e) = stdin.write_all(content.as_bytes()) {
-                eprintln!("Failed to write to xclip: {}", e);
-            }
-        }
-        
-        match child.wait() {
-            Ok(status) if status.success() => {
-                println!("\u{f00c} Content copied to clipboard!");
-                return Ok(());
-            }
-            Ok(_) => eprintln!("xclip failed"),
-            Err(e) => eprintln!("Failed to wait for xclip: {}", e),
-        }
-    }
-
-    // Try copypasta as final fallback
+    // Use copypasta as cross-platform fallback (works on Windows, Linux, macOS)
     match ClipboardContext::new() {
         Ok(mut ctx) => {
             match ctx.set_contents(content.to_string()) {

@@ -9,6 +9,7 @@ use inquire::Select;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs;
+#[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use std::path::PathBuf;
 use std::process::Command;
@@ -762,8 +763,14 @@ fn show_help(theme: &Theme) {
         "  {}lsr --workspace-file src/main.rs{} # Copy specific file to clipboard",
         example_color, reset_color
     );
+    #[cfg(unix)]
     println!(
         "  {}lsr --workspace-folder src/{}      # Copy specific folder to clipboard",
+        example_color, reset_color
+    );
+    #[cfg(windows)]
+    println!(
+        "  {}lsr --workspace-folder src\\{}     # Copy specific folder to clipboard",
         example_color, reset_color
     );
     println!(
@@ -1035,12 +1042,18 @@ fn show_directory_table(theme: &Theme) {
         };
 
         // Format permissions with theme color
-        let permissions_cell =
-            Cell::new(format_permissions(metadata.permissions().mode())).fg(Color::Rgb {
+        let permissions_cell = {
+            #[cfg(unix)]
+            let perm_text = format_permissions(metadata.permissions().mode());
+            #[cfg(windows)]
+            let perm_text = format_permissions(&metadata);
+            
+            Cell::new(perm_text).fg(Color::Rgb {
                 r: theme.permissions.0,
                 g: theme.permissions.1,
                 b: theme.permissions.2,
-            });
+            })
+        };
 
         table.add_row(vec![
             Cell::new(row_number.to_string()).fg(Color::Rgb {
@@ -1103,6 +1116,7 @@ fn format_time(time: SystemTime) -> String {
     }
 }
 
+#[cfg(unix)]
 fn format_permissions(mode: u32) -> String {
     let user = format!(
         "{}{}{}",
@@ -1123,6 +1137,13 @@ fn format_permissions(mode: u32) -> String {
         if mode & 0o001 != 0 { "x" } else { "-" }
     );
     format!("{user}{group}{other}")
+}
+
+#[cfg(windows)]
+fn format_permissions(_metadata: &std::fs::Metadata) -> String {
+    // Windows doesn't have Unix-style permissions
+    // We could check read-only status, but for simplicity, return a placeholder
+    "N/A".to_string()
 }
 
 fn show_tree(theme: &Theme, max_depth: Option<usize>, show_all: bool) {
