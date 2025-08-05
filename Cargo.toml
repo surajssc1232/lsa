@@ -6,6 +6,7 @@ repository = "https://github.com/surajssc1232/lsa"
 license = "MIT OR Apache-2.0"
 authors = ["Suraj chauhan surajssc1232@gmail.com"]
 include = ["src/**","Cargo.toml","README.md","LICENSE","Cargo.lock"]
+description = "A simple file listing tool"
 
 [dependencies]
 chrono = "0.4"
