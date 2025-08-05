@@ -2,7 +2,7 @@
 name = "lsa"
 version = "0.1.0"
 edition = "2024"
-repository = "https://github.com/surajssc1232/axe"
+repository = "https://github.com/surajssc1232/lsa"
 
 [dependencies]
 chrono = "0.4"
