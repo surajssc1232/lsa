@@ -230,7 +230,7 @@ pub fn show_help(theme: &Theme) {
     let reset_color = "\x1b[0m";
 
     println!(
-        "{}lsr - A colorful directory listing tool{}",
+        "{}lsa - A colorful directory listing tool{}",
         title_color, reset_color
     );
     println!();
@@ -246,53 +246,53 @@ pub fn show_help(theme: &Theme) {
         theme.file_name.0, theme.file_name.1, theme.file_name.2
     );
     println!(
-        "  {}lsr{}                              # Show current directory listing",
+        "  {}lsa{}                              # Show current directory listing",
         example_color, reset_color
     );
     println!(
-        "  {}lsr src{}                          # Show specific directory listing",
+        "  {}lsa src{}                          # Show specific directory listing",
         example_color, reset_color
     );
     println!(
-        "  {}lsr --tree{}                       # Show tree view",
+        "  {}lsa --tree{}                       # Show tree view",
         example_color, reset_color
     );
     println!(
-        "  {}lsr --path{}                       # Show PATH environment directories",
+        "  {}lsa --path{}                       # Show PATH environment directories",
         example_color, reset_color
     );
     println!(
-        "  {}lsr --workspace{}                  # Copy workspace to clipboard",
+        "  {}lsa --workspace{}                  # Copy workspace to clipboard",
         example_color, reset_color
     );
     println!(
-        "  {}lsr --workspace-file src/main.rs{} # Copy specific file to clipboard",
+        "  {}lsa --workspace-file src/main.rs{} # Copy specific file to clipboard",
         example_color, reset_color
     );
     #[cfg(unix)]
     println!(
-        "  {}lsr --workspace-folder src/{} # Copy specific folder to clipboard",
+        "  {}lsa --workspace-folder src/{} # Copy specific folder to clipboard",
         example_color, reset_color
     );
     #[cfg(windows)]
     println!(
-        "  {}lsr --workspace-folder src\\\\{} # Copy specific folder to clipboard",
+        "  {}lsa --workspace-folder src\\\\{} # Copy specific folder to clipboard",
         example_color, reset_color
     );
     println!(
-        "  {}lsr --workspace --source-only{}    # Copy only source files",
+        "  {}lsa --workspace --source-only{}    # Copy only source files",
         example_color, reset_color
     );
     println!(
-        "  {}lsr --workspace --max-size 32{}    # Limit output to 32KB",
+        "  {}lsa --workspace --max-size 32{}    # Limit output to 32KB",
         example_color, reset_color
     );
     println!(
-        "  {}lsr --theme{}                      # Set default theme interactively",
+        "  {}lsa --theme{}                      # Set default theme interactively",
         example_color, reset_color
     );
     println!(
-        "  {}lsr --cpu{}                        # Show CPU information",
+        "  {}lsa --cpu{}                        # Show CPU information",
         example_color, reset_color
     );
 }

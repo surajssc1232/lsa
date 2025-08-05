@@ -13,7 +13,7 @@ use display::{show_cpu_info, show_directory_table, show_help, show_path_table, s
 use themes::{get_theme_by_name, get_themes};
 
 #[derive(Parser)]
-#[command(name = "lsr")]
+#[command(name = "lsa")]
 #[command(about = "A colorful directory listing tool with multiple themes")]
 #[command(disable_help_flag = true)]
 struct Cli {

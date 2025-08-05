@@ -18,7 +18,7 @@ impl Default for Config {
 fn get_config_path() -> PathBuf {
     dirs::config_dir()
         .unwrap_or_else(|| PathBuf::from("."))
-        .join("lsr")
+        .join("lsa")
         .join("config.toml")
 }
 

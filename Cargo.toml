@@ -1,5 +1,5 @@
 [package]
-name = "lsr"
+name = "lsa"
 version = "0.1.0"
 edition = "2024"
 repository = "https://github.com/surajssc1232/axe"
