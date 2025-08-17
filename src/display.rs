@@ -760,130 +760,276 @@ pub fn show_structured_data(theme: &Theme, file_path: &str) {
 }
 
 fn render_flattened_data(data: &DataValue, theme: &Theme) {
-    let flattened_rows = flatten_data_structure(data, String::new());
-    
-    let mut table = Table::new();
-    table
-        .load_preset(UTF8_BORDERS_ONLY)
-        .apply_modifier(UTF8_ROUND_CORNERS)
-        .set_content_arrangement(ContentArrangement::Dynamic)
-        .set_header(vec![
-            Cell::new("Key")
-                .add_attribute(Attribute::Bold)
-                .fg(Color::Rgb {
-                    r: theme.header.0,
-                    g: theme.header.1,
-                    b: theme.header.2,
-                }),
-            Cell::new("Value")
-                .add_attribute(Attribute::Bold)
-                .fg(Color::Rgb {
-                    r: theme.header.0,
-                    g: theme.header.1,
-                    b: theme.header.2,
-                }),
-        ]);
-
-    for (i, (key, value, depth)) in flattened_rows.iter().enumerate() {
-        let key_color = if i % 2 == 0 {
-            Color::Rgb {
-                r: theme.file_name.0,
-                g: theme.file_name.1,
-                b: theme.file_name.2,
-            }
-        } else {
-            Color::Rgb {
-                r: theme.dir_name.0,
-                g: theme.dir_name.1,
-                b: theme.dir_name.2,
-            }
-        };
-
-        let value_color = if i % 2 == 0 {
-            Color::Rgb {
-                r: theme.file_size.0,
-                g: theme.file_size.1,
-                b: theme.file_size.2,
-            }
-        } else {
-            Color::Rgb {
-                r: theme.modified.0,
-                g: theme.modified.1,
-                b: theme.modified.2,
-            }
-        };
-
-        // Add indentation based on depth to show hierarchy
-        let indented_key = format!("{}{}", "  ".repeat(*depth), key);
-
-        table.add_row(vec![
-            Cell::new(indented_key).fg(key_color),
-            Cell::new(value).fg(value_color),
-        ]);
-    }
-
-    let table_output = table.to_string();
-    let colored_output = colorize_borders(&table_output, theme);
-    println!("{}", colored_output);
+    render_main_table_with_nested(data, theme);
 }
 
-fn flatten_data_structure(data: &DataValue, prefix: String) -> Vec<(String, String, usize)> {
-    let mut result = Vec::new();
-    
+fn render_main_table_with_nested(data: &DataValue, theme: &Theme) {
     match data {
         DataValue::Object(obj) => {
-            for (key, value) in obj {
-                if value.is_simple_value() {
-                    result.push((key.clone(), value.to_display_string(), 0));
+            let mut table = Table::new();
+            table
+                .load_preset(UTF8_BORDERS_ONLY)
+                .apply_modifier(UTF8_ROUND_CORNERS)
+                .set_content_arrangement(ContentArrangement::Dynamic)
+                .set_header(vec![
+                    Cell::new("Key")
+                        .add_attribute(Attribute::Bold)
+                        .fg(Color::Rgb {
+                            r: theme.header.0,
+                            g: theme.header.1,
+                            b: theme.header.2,
+                        }),
+                    Cell::new("Value")
+                        .add_attribute(Attribute::Bold)
+                        .fg(Color::Rgb {
+                            r: theme.header.0,
+                            g: theme.header.1,
+                            b: theme.header.2,
+                        }),
+                ]);
+
+            for (i, (key, value)) in obj.iter().enumerate() {
+                let key_color = if i % 2 == 0 {
+                    Color::Rgb {
+                        r: theme.file_name.0,
+                        g: theme.file_name.1,
+                        b: theme.file_name.2,
+                    }
                 } else {
-                    // For complex values, show the key and indicate it's a container
-                    let container_type = match value {
-                        DataValue::Array(arr) => format!("{} items", arr.len()),
-                        DataValue::Object(obj) => format!("{} keys", obj.len()),
-                        _ => "...".to_string(),
-                    };
-                    result.push((key.clone(), container_type, 0));
-                    
-                    // Then add the nested items with increased depth
-                    let mut nested = flatten_data_structure(value, key.clone());
-                    for (nested_key, _val, depth) in &mut nested {
-                        *depth += 1;
-                        // Add ▸ prefix for nested keys at depth 1 (immediate children)
-                        // But only if it doesn't already start with ▸ and isn't "..." (unnamed array values)
-                        if *depth == 1 && !nested_key.starts_with("▸") && !nested_key.starts_with("...") {
-                            *nested_key = format!("▸ {}", nested_key);
+                    Color::Rgb {
+                        r: theme.dir_name.0,
+                        g: theme.dir_name.1,
+                        b: theme.dir_name.2,
+                    }
+                };
+
+                let value_cell_content = if value.is_simple_value() {
+                    value.to_display_string()
+                } else {
+                    // Create a nested table as a string and embed it in the cell
+                    create_nested_table_string(value, theme)
+                };
+
+                let value_color = if value.is_simple_value() {
+                    if i % 2 == 0 {
+                        Color::Rgb {
+                            r: theme.file_size.0,
+                            g: theme.file_size.1,
+                            b: theme.file_size.2,
+                        }
+                    } else {
+                        Color::Rgb {
+                            r: theme.modified.0,
+                            g: theme.modified.1,
+                            b: theme.modified.2,
                         }
                     }
-                    result.extend(nested);
-                }
+                } else {
+                    // For nested tables, use a neutral color
+                    Color::Rgb {
+                        r: theme.permissions.0,
+                        g: theme.permissions.1,
+                        b: theme.permissions.2,
+                    }
+                };
+
+                table.add_row(vec![
+                    Cell::new(key).fg(key_color),
+                    Cell::new(value_cell_content).fg(value_color),
+                ]);
             }
+
+            let table_output = table.to_string();
+            let colored_output = colorize_borders(&table_output, theme);
+            println!("{}", colored_output);
         }
         DataValue::Array(arr) => {
-            for (index, value) in arr.iter().enumerate() {
-                if value.is_simple_value() {
-                    // Use ... for simple array values without names
-                    result.push(("...".to_string(), value.to_display_string(), 0));
+            let mut table = Table::new();
+            table
+                .load_preset(UTF8_BORDERS_ONLY)
+                .apply_modifier(UTF8_ROUND_CORNERS)
+                .set_content_arrangement(ContentArrangement::Dynamic)
+                .set_header(vec![
+                    Cell::new("Index")
+                        .add_attribute(Attribute::Bold)
+                        .fg(Color::Rgb {
+                            r: theme.header.0,
+                            g: theme.header.1,
+                            b: theme.header.2,
+                        }),
+                    Cell::new("Value")
+                        .add_attribute(Attribute::Bold)
+                        .fg(Color::Rgb {
+                            r: theme.header.0,
+                            g: theme.header.1,
+                            b: theme.header.2,
+                        }),
+                ]);
+
+            for (i, value) in arr.iter().enumerate() {
+                let index_color = if i % 2 == 0 {
+                    Color::Rgb {
+                        r: theme.row_number.0,
+                        g: theme.row_number.1,
+                        b: theme.row_number.2,
+                    }
                 } else {
-                    // For complex array values (objects), directly flatten their contents
-                    // and prefix each key with the arrow symbol
-                    let mut nested = flatten_data_structure(value, index.to_string());
-                    for (key, _val, depth) in &mut nested {
-                        // Only modify top-level keys within this array item (depth 0)
-                        // but skip if the key is already "..." (unnamed array values)
-                        if *depth == 0 && !key.starts_with("...") {
-                            *key = format!("▸ {}", key);
+                    Color::Rgb {
+                        r: theme.file_type.0,
+                        g: theme.file_type.1,
+                        b: theme.file_type.2,
+                    }
+                };
+
+                let value_cell_content = if value.is_simple_value() {
+                    value.to_display_string()
+                } else {
+                    create_nested_table_string(value, theme)
+                };
+
+                let value_color = if value.is_simple_value() {
+                    if i % 2 == 0 {
+                        Color::Rgb {
+                            r: theme.file_size.0,
+                            g: theme.file_size.1,
+                            b: theme.file_size.2,
+                        }
+                    } else {
+                        Color::Rgb {
+                            r: theme.modified.0,
+                            g: theme.modified.1,
+                            b: theme.modified.2,
                         }
                     }
-                    result.extend(nested);
-                }
+                } else {
+                    Color::Rgb {
+                        r: theme.permissions.0,
+                        g: theme.permissions.1,
+                        b: theme.permissions.2,
+                    }
+                };
+
+                table.add_row(vec![
+                    Cell::new(i.to_string()).fg(index_color),
+                    Cell::new(value_cell_content).fg(value_color),
+                ]);
             }
+
+            let table_output = table.to_string();
+            let colored_output = colorize_borders(&table_output, theme);
+            println!("{}", colored_output);
         }
         _ => {
-            result.push((prefix, data.to_display_string(), 0));
+            // For simple values, just display them in a single-column table
+            let mut table = Table::new();
+            table
+                .load_preset(UTF8_BORDERS_ONLY)
+                .apply_modifier(UTF8_ROUND_CORNERS)
+                .set_content_arrangement(ContentArrangement::Dynamic)
+                .set_header(vec![
+                    Cell::new("Value")
+                        .add_attribute(Attribute::Bold)
+                        .fg(Color::Rgb {
+                            r: theme.header.0,
+                            g: theme.header.1,
+                            b: theme.header.2,
+                        }),
+                ]);
+
+            table.add_row(vec![
+                Cell::new(data.to_display_string()).fg(Color::Rgb {
+                    r: theme.file_name.0,
+                    g: theme.file_name.1,
+                    b: theme.file_name.2,
+                }),
+            ]);
+
+            let table_output = table.to_string();
+            let colored_output = colorize_borders(&table_output, theme);
+            println!("{}", colored_output);
+        }
+    }
+}
+
+fn create_nested_table_string(data: &DataValue, _theme: &Theme) -> String {
+    match data {
+        DataValue::Object(obj) => {
+            let mut nested_table = Table::new();
+            nested_table
+                .load_preset(UTF8_BORDERS_ONLY)
+                .apply_modifier(UTF8_ROUND_CORNERS)
+                .set_content_arrangement(ContentArrangement::Dynamic);
+
+            // Create a compact nested table
+            for (key, value) in obj.iter() {
+                let display_value = if value.is_simple_value() {
+                    value.to_display_string()
+                } else {
+                    match value {
+                        DataValue::Array(arr) => format!("[{} items]", arr.len()),
+                        DataValue::Object(obj) => format!("{{{} keys}}", obj.len()),
+                        _ => "...".to_string(),
+                    }
+                };
+                nested_table.add_row(vec![
+                    Cell::new(key),
+                    Cell::new(display_value),
+                ]);
+            }
+            
+            // Remove ANSI color codes from the table string for embedding
+            strip_ansi_codes(&nested_table.to_string())
+        }
+        DataValue::Array(arr) => {
+            let mut nested_table = Table::new();
+            nested_table
+                .load_preset(UTF8_BORDERS_ONLY)
+                .apply_modifier(UTF8_ROUND_CORNERS)
+                .set_content_arrangement(ContentArrangement::Dynamic);
+
+            for (i, value) in arr.iter().enumerate() {
+                let display_value = if value.is_simple_value() {
+                    value.to_display_string()
+                } else {
+                    match value {
+                        DataValue::Array(arr) => format!("[{} items]", arr.len()),
+                        DataValue::Object(obj) => format!("{{{} keys}}", obj.len()),
+                        _ => "...".to_string(),
+                    }
+                };
+                nested_table.add_row(vec![
+                    Cell::new(i.to_string()),
+                    Cell::new(display_value),
+                ]);
+            }
+            
+            strip_ansi_codes(&nested_table.to_string())
+        }
+        _ => data.to_display_string(),
+    }
+}
+
+fn strip_ansi_codes(input: &str) -> String {
+    // Simple ANSI escape sequence removal for table embedding
+    let mut result = String::new();
+    let mut chars = input.chars();
+    
+    while let Some(ch) = chars.next() {
+        if ch == '\x1b' {
+            // Skip ANSI escape sequences
+            while let Some(next_ch) = chars.next() {
+                if next_ch.is_ascii_alphabetic() {
+                    break;
+                }
+            }
+        } else {
+            result.push(ch);
         }
     }
     
     result
 }
+
+
 
 
