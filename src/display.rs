@@ -9,6 +9,7 @@ use std::os::unix::fs::PermissionsExt;
 use std::process::Command;
 
 use crate::icons::get_file_icon;
+use crate::parser::{parse_file, DataValue};
 use crate::themes::Theme;
 use crate::utils::{colorize_borders, format_permissions, format_size, format_time};
 
@@ -171,6 +172,11 @@ pub fn show_help(theme: &Theme) {
             "",
             "Set theme as default (interactive if no name)",
         ),
+        (
+            "--open <FILE>",
+            "",
+            "Parse and display structured data (JSON, YAML, TOML)",
+        ),
     ];
 
     for (i, (long, short, desc)) in options.iter().enumerate() {
@@ -293,6 +299,18 @@ pub fn show_help(theme: &Theme) {
     );
     println!(
         "  {}lsa --cpu{}                        # Show CPU information",
+        example_color, reset_color
+    );
+    println!(
+        "  {}lsa --open config.json{}           # Display JSON file in tabular format",
+        example_color, reset_color
+    );
+    println!(
+        "  {}lsa --open settings.yaml{}         # Display YAML file in tabular format",
+        example_color, reset_color
+    );
+    println!(
+        "  {}lsa --open Cargo.toml{}            # Display TOML file in tabular format",
         example_color, reset_color
     );
 }
@@ -717,4 +735,155 @@ fn display_tree_recursive(
         }
     }
 }
+
+pub fn show_structured_data(theme: &Theme, file_path: &str) {
+    match parse_file(file_path) {
+        Ok(parsed_data) => {
+            let title_color = format!(
+                "\x1b[38;2;{};{};{}m",
+                theme.header.0, theme.header.1, theme.header.2
+            );
+            let reset_color = "\x1b[0m";
+
+            println!(
+                "{}Structured Data ({}) - {}{}", 
+                title_color, parsed_data.format, file_path, reset_color
+            );
+            println!();
+
+            render_flattened_data(&parsed_data.data, theme);
+        }
+        Err(e) => {
+            eprintln!("Error parsing file '{}': {}", file_path, e);
+        }
+    }
+}
+
+fn render_flattened_data(data: &DataValue, theme: &Theme) {
+    let flattened_rows = flatten_data_structure(data, String::new());
+    
+    let mut table = Table::new();
+    table
+        .load_preset(UTF8_BORDERS_ONLY)
+        .apply_modifier(UTF8_ROUND_CORNERS)
+        .set_content_arrangement(ContentArrangement::Dynamic)
+        .set_header(vec![
+            Cell::new("Key")
+                .add_attribute(Attribute::Bold)
+                .fg(Color::Rgb {
+                    r: theme.header.0,
+                    g: theme.header.1,
+                    b: theme.header.2,
+                }),
+            Cell::new("Value")
+                .add_attribute(Attribute::Bold)
+                .fg(Color::Rgb {
+                    r: theme.header.0,
+                    g: theme.header.1,
+                    b: theme.header.2,
+                }),
+        ]);
+
+    for (i, (key, value, depth)) in flattened_rows.iter().enumerate() {
+        let key_color = if i % 2 == 0 {
+            Color::Rgb {
+                r: theme.file_name.0,
+                g: theme.file_name.1,
+                b: theme.file_name.2,
+            }
+        } else {
+            Color::Rgb {
+                r: theme.dir_name.0,
+                g: theme.dir_name.1,
+                b: theme.dir_name.2,
+            }
+        };
+
+        let value_color = if i % 2 == 0 {
+            Color::Rgb {
+                r: theme.file_size.0,
+                g: theme.file_size.1,
+                b: theme.file_size.2,
+            }
+        } else {
+            Color::Rgb {
+                r: theme.modified.0,
+                g: theme.modified.1,
+                b: theme.modified.2,
+            }
+        };
+
+        // Add indentation based on depth to show hierarchy
+        let indented_key = format!("{}{}", "  ".repeat(*depth), key);
+
+        table.add_row(vec![
+            Cell::new(indented_key).fg(key_color),
+            Cell::new(value).fg(value_color),
+        ]);
+    }
+
+    let table_output = table.to_string();
+    let colored_output = colorize_borders(&table_output, theme);
+    println!("{}", colored_output);
+}
+
+fn flatten_data_structure(data: &DataValue, prefix: String) -> Vec<(String, String, usize)> {
+    let mut result = Vec::new();
+    
+    match data {
+        DataValue::Object(obj) => {
+            for (key, value) in obj {
+                if value.is_simple_value() {
+                    result.push((key.clone(), value.to_display_string(), 0));
+                } else {
+                    // For complex values, show the key and indicate it's a container
+                    let container_type = match value {
+                        DataValue::Array(arr) => format!("{} items", arr.len()),
+                        DataValue::Object(obj) => format!("{} keys", obj.len()),
+                        _ => "...".to_string(),
+                    };
+                    result.push((key.clone(), container_type, 0));
+                    
+                    // Then add the nested items with increased depth
+                    let mut nested = flatten_data_structure(value, key.clone());
+                    for (nested_key, _val, depth) in &mut nested {
+                        *depth += 1;
+                        // Add ▸ prefix for nested keys at depth 1 (immediate children)
+                        // But only if it doesn't already start with ▸ and isn't "..." (unnamed array values)
+                        if *depth == 1 && !nested_key.starts_with("▸") && !nested_key.starts_with("...") {
+                            *nested_key = format!("▸ {}", nested_key);
+                        }
+                    }
+                    result.extend(nested);
+                }
+            }
+        }
+        DataValue::Array(arr) => {
+            for (index, value) in arr.iter().enumerate() {
+                if value.is_simple_value() {
+                    // Use ... for simple array values without names
+                    result.push(("...".to_string(), value.to_display_string(), 0));
+                } else {
+                    // For complex array values (objects), directly flatten their contents
+                    // and prefix each key with the arrow symbol
+                    let mut nested = flatten_data_structure(value, index.to_string());
+                    for (key, _val, depth) in &mut nested {
+                        // Only modify top-level keys within this array item (depth 0)
+                        // but skip if the key is already "..." (unnamed array values)
+                        if *depth == 0 && !key.starts_with("...") {
+                            *key = format!("▸ {}", key);
+                        }
+                    }
+                    result.extend(nested);
+                }
+            }
+        }
+        _ => {
+            result.push((prefix, data.to_display_string(), 0));
+        }
+    }
+    
+    result
+}
+
 

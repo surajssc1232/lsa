@@ -1,0 +1,14 @@
+name: test-app
+version: 2.1.0
+description: A test application
+dependencies:
+  - name: lodash
+    version: 4.17.21
+  - name: express
+    version: 4.18.2
+config:
+  environment: production
+  debug: false
+  ports:
+    - 3000
+    - 8080

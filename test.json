@@ -1,0 +1,1 @@
+{"name": "test", "version": "1.0.0", "dependencies": {"serde": "1.0", "tokio": "1.0"}, "config": {"debug": true, "port": 8080}}

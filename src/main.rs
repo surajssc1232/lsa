@@ -1,6 +1,7 @@
 mod config;
 mod display;
 mod icons;
+mod parser;
 mod themes;
 mod utils;
 mod workspace;
@@ -9,7 +10,7 @@ use clap::Parser;
 use inquire::Select;
 
 use config::{Config, load_config, save_config};
-use display::{show_cpu_info, show_directory_table, show_help, show_path_table, show_tree};
+use display::{show_cpu_info, show_directory_table, show_help, show_path_table, show_structured_data, show_tree};
 use themes::{get_theme_by_name, get_themes};
 
 #[derive(Parser)]
@@ -52,6 +53,9 @@ struct Cli {
 
     #[arg(long)]
     path: bool,
+
+    #[arg(long, value_name = "FILE_PATH")]
+    open: Option<String>,
 
     #[arg(value_name = "DIRECTORY")]
     directory: Option<String>,
@@ -160,6 +164,14 @@ fn main() {
         let theme =
             get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone());
         show_path_table(&theme);
+        return;
+    }
+
+    if let Some(file_path) = &cli.open {
+        let config = load_config();
+        let theme =
+            get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone());
+        show_structured_data(&theme, file_path);
         return;
     }
 

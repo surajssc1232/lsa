@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: production
+  labels:
+    app: my-app
+    version: "1.0"
+data:
+  database.yaml: |
+    host: postgres.example.com
+    port: 5432
+    credentials:
+      username: admin
+      password: secret
+  logging.json: |
+    {
+      "level": "info",
+      "format": "json",
+      "outputs": ["stdout", "file"]
+    }
+servers:
+  - name: web-1
+    ip: 192.168.1.10
+    ports: [80, 443]
+    config:
+      ssl: true
+      workers: 4
+  - name: web-2
+    ip: 192.168.1.11
+    ports: [80, 443]
+    config:
+      ssl: true
+      workers: 8
+environments:
+  development:
+    debug: true
+    replicas: 1
+    resources:
+      memory: 512Mi
+      cpu: 200m
+  production:
+    debug: false
+    replicas: 3
+    resources:
+      memory: 1Gi
+      cpu: 500m
