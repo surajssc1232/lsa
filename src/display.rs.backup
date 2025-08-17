@@ -960,13 +960,16 @@ fn create_nested_table_string(data: &DataValue, _theme: &Theme) -> String {
                 .apply_modifier(UTF8_ROUND_CORNERS)
                 .set_content_arrangement(ContentArrangement::Dynamic);
 
-            // Create a compact nested table with full recursion
+            // Create a compact nested table
             for (key, value) in obj.iter() {
                 let display_value = if value.is_simple_value() {
                     value.to_display_string()
                 } else {
-                    // Recursively create nested tables instead of summaries
-                    create_nested_table_string(value, _theme)
+                    match value {
+                        DataValue::Array(arr) => format!("[{} items]", arr.len()),
+                        DataValue::Object(obj) => format!("{{{} keys}}", obj.len()),
+                        _ => "...".to_string(),
+                    }
                 };
                 nested_table.add_row(vec![
                     Cell::new(key),
@@ -988,8 +991,11 @@ fn create_nested_table_string(data: &DataValue, _theme: &Theme) -> String {
                 let display_value = if value.is_simple_value() {
                     value.to_display_string()
                 } else {
-                    // Recursively create nested tables instead of summaries
-                    create_nested_table_string(value, _theme)
+                    match value {
+                        DataValue::Array(arr) => format!("[{} items]", arr.len()),
+                        DataValue::Object(obj) => format!("{{{} keys}}", obj.len()),
+                        _ => "...".to_string(),
+                    }
                 };
                 nested_table.add_row(vec![
                     Cell::new(i.to_string()),
