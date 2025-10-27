@@ -73,11 +73,12 @@ pub fn calculate_directory_size(path: &std::path::Path) -> u64 {
     let mut total_size = 0u64;
     if let Ok(entries) = std::fs::read_dir(path) {
         for entry in entries.flatten() {
-            if let Ok(metadata) = entry.path().metadata() {
+            let entry_path = entry.path();
+            if let Ok(metadata) = entry_path.metadata() {
                 if metadata.is_file() {
                     total_size += metadata.len();
-                } else if metadata.is_dir() {
-                    total_size += calculate_directory_size(&entry.path());
+                } else if metadata.is_dir() && !entry_path.is_symlink() {
+                    total_size += calculate_directory_size(&entry_path);
                 }
             }
         }
