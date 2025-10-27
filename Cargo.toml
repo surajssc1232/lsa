@@ -1,6 +1,6 @@
 [package]
 name = "lsa"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 repository = "https://github.com/surajssc1232/lsa"
 license = "MIT OR Apache-2.0"
@@ -20,3 +20,5 @@ toml = "0.8"
 dirs = "5.0"
 copypasta = "0.10"
 ignore = "0.4"
+assert_fs = "1.0"
+lazy_static = "1.4"

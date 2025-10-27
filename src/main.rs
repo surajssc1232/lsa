@@ -2,6 +2,7 @@ mod config;
 mod display;
 mod icons;
 mod parser;
+mod theme;
 mod themes;
 mod utils;
 mod workspace;
