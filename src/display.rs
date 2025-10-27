@@ -11,7 +11,7 @@ use std::process::Command;
 use crate::icons::get_file_icon;
 use crate::parser::{parse_file, DataValue};
 use crate::themes::Theme;
-use crate::utils::{colorize_borders, format_permissions, format_size, format_time, calculate_directory_size};
+use crate::utils::{colorize_borders, format_permissions, format_size, format_time};
 
 pub fn show_cpu_info(theme: &Theme) {
     let output = match Command::new("lscpu").output() {
@@ -337,11 +337,11 @@ pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>, sort_by
             let metadata = path.metadata().ok()?;
             let name = path.file_name()?.to_string_lossy().to_string();
             let file_type = if path.is_dir() { "Directory" } else { "File" };
-            let size = if path.is_dir() {
-                calculate_directory_size(&path)
-            } else {
-                metadata.len()
-            };
+             let size = if path.is_dir() {
+                 0 // Skip calculating directory sizes for performance
+             } else {
+                 metadata.len()
+             };
             let modified = metadata.modified().ok()?;
             Some((path, name, file_type.to_string(), size, modified, metadata))
         })
@@ -449,7 +449,7 @@ pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>, sort_by
             })
         };
 
-        let size_cell = Cell::new(format_size(size)).fg(if path.is_dir() {
+        let size_cell = Cell::new(if path.is_dir() { "-".to_string() } else { format_size(size) }).fg(if path.is_dir() {
             Color::Rgb {
                 r: theme.dir_size.0,
                 g: theme.dir_size.1,
