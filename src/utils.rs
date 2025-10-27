@@ -69,6 +69,22 @@ pub fn format_permissions(_metadata: &std::fs::Metadata) -> String {
     "N/A".to_string()
 }
 
+pub fn calculate_directory_size(path: &std::path::Path) -> u64 {
+    let mut total_size = 0u64;
+    if let Ok(entries) = std::fs::read_dir(path) {
+        for entry in entries.flatten() {
+            if let Ok(metadata) = entry.path().metadata() {
+                if metadata.is_file() {
+                    total_size += metadata.len();
+                } else if metadata.is_dir() {
+                    total_size += calculate_directory_size(&entry.path());
+                }
+            }
+        }
+    }
+    total_size
+}
+
 pub fn colorize_borders(table_str: &str, theme: &crate::themes::Theme) -> String {
     let border_color = format!(
         "\x1b[38;2;{};{};{}m",

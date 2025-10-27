@@ -7,12 +7,20 @@ mod themes;
 mod utils;
 mod workspace;
 
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use inquire::Select;
 
 use config::{Config, load_config, save_config};
 use display::{show_cpu_info, show_directory_table, show_help, show_path_table, show_structured_data, show_tree};
 use themes::{get_theme_by_name, get_themes};
+
+#[derive(Clone, ValueEnum)]
+pub enum SortBy {
+    Name,
+    Size,
+    Modified,
+    Type,
+}
 
 #[derive(Parser)]
 #[command(name = "lsa")]
@@ -57,6 +65,9 @@ struct Cli {
 
     #[arg(long, value_name = "FILE_PATH")]
     open: Option<String>,
+
+    #[arg(long, value_name = "SORT_BY")]
+    sort: Option<crate::SortBy>,
 
     #[arg(value_name = "DIRECTORY")]
     directory: Option<String>,
@@ -178,6 +189,6 @@ fn main() {
 
     let config = load_config();
     let theme = get_theme_by_name(&config.default_theme).unwrap_or_else(|| get_themes()[0].clone());
-    show_directory_table(&theme, cli.directory.as_deref());
+    show_directory_table(&theme, cli.directory.as_deref(), cli.sort.as_ref());
 }
 

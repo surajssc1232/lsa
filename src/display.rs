@@ -11,7 +11,7 @@ use std::process::Command;
 use crate::icons::get_file_icon;
 use crate::parser::{parse_file, DataValue};
 use crate::themes::Theme;
-use crate::utils::{colorize_borders, format_permissions, format_size, format_time};
+use crate::utils::{colorize_borders, format_permissions, format_size, format_time, calculate_directory_size};
 
 pub fn show_cpu_info(theme: &Theme) {
     let output = match Command::new("lscpu").output() {
@@ -177,6 +177,11 @@ pub fn show_help(theme: &Theme) {
             "",
             "Parse and display structured data (JSON, YAML, TOML)",
         ),
+        (
+            "--sort <SORT_BY>",
+            "",
+            "Sort by: name, size, modified, type",
+        ),
     ];
 
     for (i, (long, short, desc)) in options.iter().enumerate() {
@@ -315,7 +320,7 @@ pub fn show_help(theme: &Theme) {
     );
 }
 
-pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>) {
+pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>, sort_by: Option<&crate::SortBy>) {
     let target_dir = if let Some(path) = directory_path {
         std::path::PathBuf::from(path)
     } else {
@@ -323,6 +328,45 @@ pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>) {
     };
 
     let entries = fs::read_dir(&target_dir).expect("Could not read directory");
+
+    // Collect all entries with their metadata
+    let mut entries_with_meta: Vec<_> = entries
+        .filter_map(|entry| {
+            let entry = entry.ok()?;
+            let path = entry.path();
+            let metadata = path.metadata().ok()?;
+            let name = path.file_name()?.to_string_lossy().to_string();
+            let file_type = if path.is_dir() { "Directory" } else { "File" };
+            let size = if path.is_dir() {
+                calculate_directory_size(&path)
+            } else {
+                metadata.len()
+            };
+            let modified = metadata.modified().ok()?;
+            Some((path, name, file_type.to_string(), size, modified, metadata))
+        })
+        .collect();
+
+    // Sort entries based on sort_by parameter
+    if let Some(sort_by) = sort_by {
+        entries_with_meta.sort_by(|a, b| {
+            match sort_by {
+                crate::SortBy::Name => a.1.cmp(&b.1),
+                crate::SortBy::Size => a.3.cmp(&b.3),
+                crate::SortBy::Modified => a.4.cmp(&b.4),
+                crate::SortBy::Type => {
+                    // Directories first, then files
+                    let a_is_dir = a.0.is_dir();
+                    let b_is_dir = b.0.is_dir();
+                    match (a_is_dir, b_is_dir) {
+                        (true, false) => std::cmp::Ordering::Less,
+                        (false, true) => std::cmp::Ordering::Greater,
+                        _ => a.1.cmp(&b.1), // Same type, sort by name
+                    }
+                }
+            }
+        });
+    }
 
     let mut table = Table::new();
     table
@@ -375,21 +419,7 @@ pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>) {
         ]);
 
     let mut row_number = 1;
-    for entry in entries.flatten() {
-        let path = entry.path();
-        let name = path
-            .file_name()
-            .unwrap_or_default()
-            .to_string_lossy()
-            .to_string();
-
-        let metadata = match path.metadata() {
-            Ok(meta) => meta,
-            Err(_) => continue,
-        };
-
-        let file_type = if path.is_dir() { "Directory" } else { "File" };
-
+    for (path, name, file_type, size, modified, metadata) in entries_with_meta {
         let name_with_icon = format!("{} {}", get_file_icon(&path), name);
         let name_cell = if path.is_dir() {
             Cell::new(&name_with_icon).fg(Color::Rgb {
@@ -406,45 +436,38 @@ pub fn show_directory_table(theme: &Theme, directory_path: Option<&str>) {
         };
 
         let type_cell = if path.is_dir() {
-            Cell::new(file_type).fg(Color::Rgb {
+            Cell::new(&file_type).fg(Color::Rgb {
                 r: theme.dir_type.0,
                 g: theme.dir_type.1,
                 b: theme.dir_type.2,
             })
         } else {
-            Cell::new(file_type).fg(Color::Rgb {
+            Cell::new(&file_type).fg(Color::Rgb {
                 r: theme.file_type.0,
                 g: theme.file_type.1,
                 b: theme.file_type.2,
             })
         };
 
-        let size_cell = if path.is_dir() {
-            Cell::new("-".to_string()).fg(Color::Rgb {
+        let size_cell = Cell::new(format_size(size)).fg(if path.is_dir() {
+            Color::Rgb {
                 r: theme.dir_size.0,
                 g: theme.dir_size.1,
                 b: theme.dir_size.2,
-            })
+            }
         } else {
-            Cell::new(format_size(metadata.len())).fg(Color::Rgb {
+            Color::Rgb {
                 r: theme.file_size.0,
                 g: theme.file_size.1,
                 b: theme.file_size.2,
-            })
-        };
+            }
+        });
 
-        let modified_cell = match metadata.modified() {
-            Ok(time) => Cell::new(format_time(time)).fg(Color::Rgb {
-                r: theme.modified.0,
-                g: theme.modified.1,
-                b: theme.modified.2,
-            }),
-            Err(_) => Cell::new("Unknown").fg(Color::Rgb {
-                r: theme.modified.0,
-                g: theme.modified.1,
-                b: theme.modified.2,
-            }),
-        };
+        let modified_cell = Cell::new(format_time(modified)).fg(Color::Rgb {
+            r: theme.modified.0,
+            g: theme.modified.1,
+            b: theme.modified.2,
+        });
 
         let permissions_cell = {
             #[cfg(unix)]
